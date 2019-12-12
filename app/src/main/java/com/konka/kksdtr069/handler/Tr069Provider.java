@@ -1,4 +1,4 @@
-package com.konka.kksdtr069.model;
+package com.konka.kksdtr069.handler;
 
 
 import android.content.ContentProvider;
@@ -8,8 +8,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
-import com.konka.kksdtr069.util.LogUtil;
-import com.konka.kksdtr069.util.Utils;
+import com.konka.kksdtr069.util.LogUtils;
+import com.konka.kksdtr069.util.PropertyUtils;
 
 public class Tr069Provider extends ContentProvider {
 
@@ -41,14 +41,14 @@ public class Tr069Provider extends ContentProvider {
     }
 
     public boolean onCreate() {
-        LogUtil.i(TAG, "provider onCreate");
+        LogUtils.i(TAG, "provider onCreate");
         db = new DBHelper(getContext()).getWritableDatabase();
         initData();
         return true;
     }
 
     private void initData() {
-        LogUtil.d(TAG, "initData");
+        LogUtils.d(TAG, "initData");
         int ret = -100;
         String prop, dname;
 
@@ -56,11 +56,11 @@ public class Tr069Provider extends ContentProvider {
             prop = s[0];
             dname = s[1];
 
-            String mac = Utils.getProperty(prop);
+            String mac = PropertyUtils.getProperty(prop);
             ContentValues cv = new ContentValues();
             cv.put("value", mac);
             ret = update(Uri.parse(URI_AUTH), cv, "name=?", new String[]{dname});
-            LogUtil.i(TAG, "update:{" + prop + "} ret=" + ret);
+            LogUtils.i(TAG, "update:{" + prop + "} ret=" + ret);
         }
         updateDb("Device.ManagementServer.ConnectionRequestUsername", "cpe");
         updateDb("Device.ManagementServer.ConnectionRequestPassword", "cpe");
@@ -75,46 +75,46 @@ public class Tr069Provider extends ContentProvider {
 
     private void updateDb(String dname, String dvalue) {
         // TODO Auto-generated method stub
-        LogUtil.i(TAG, "updateDb");
+        LogUtils.i(TAG, "updateDb");
         int ret = -100;
 
         ContentValues cv = new ContentValues();
         cv.put("value", dvalue);
         ret = update(Uri.parse(URI_AUTH), cv, "name=?", new String[]{dname});
-        LogUtil.i(TAG, "update:{" + dname + "} ret=" + ret);
+        LogUtils.i(TAG, "update:{" + dname + "} ret=" + ret);
     }
 
     private void updateDb(String dname, boolean dvalue) {
         // TODO Auto-generated method stub
-        LogUtil.i(TAG, "updateDb");
+        LogUtils.i(TAG, "updateDb");
         int ret = -100;
 
         ContentValues cv = new ContentValues();
         cv.put("value", dvalue);
         ret = update(Uri.parse(URI_AUTH), cv, "name=?", new String[]{dname});
-        LogUtil.i(TAG, "update:{" + dname + "} ret=" + ret);
+        LogUtils.i(TAG, "update:{" + dname + "} ret=" + ret);
     }
 
     private void updateDb(String dname, int dvalue) {
         // TODO Auto-generated method stub
-        LogUtil.i(TAG, "updateDb");
+        LogUtils.i(TAG, "updateDb");
         int ret = -100;
 
         ContentValues cv = new ContentValues();
         cv.put("value", dvalue);
         ret = update(Uri.parse(URI_AUTH), cv, "name=?", new String[]{dname});
-        LogUtil.i(TAG, "update:{" + dname + "} ret=" + ret);
+        LogUtils.i(TAG, "update:{" + dname + "} ret=" + ret);
     }
 
 
     public String getType(Uri uri) {
-        LogUtil.i(TAG, "getType(" + uri.toString() + ")");
+        LogUtils.i(TAG, "getType(" + uri.toString() + ")");
         return null;
     }
 
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
                         String sortOrder) {
-        LogUtil.i(TAG, "query(" + uri.toString() + ")");
+        LogUtils.i(TAG, "query(" + uri.toString() + ")");
         String select = null;
         String[] selectArgs = null;
         String table = (String) uri.getPathSegments().get(0);
@@ -133,16 +133,16 @@ public class Tr069Provider extends ContentProvider {
     }
 
     public Uri insert(Uri uri, ContentValues values) {
-        LogUtil.i(TAG, "insert(" + uri.toString() + ")");
+        LogUtils.i(TAG, "insert(" + uri.toString() + ")");
         long r = -1;
         String table = (String) uri.getPathSegments().get(0);
         r = db.insert(table, null, values);
-        LogUtil.i(TAG, "insert " + r);
+        LogUtils.i(TAG, "insert " + r);
         return Uri.withAppendedPath(uri, r + "");
     }
 
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        LogUtil.i(TAG, "delete(" + uri.toString() + ")");
+        LogUtils.i(TAG, "delete(" + uri.toString() + ")");
         String select = null;
         String[] selectArgs = null;
         String table = (String) uri.getPathSegments().get(0);
@@ -169,9 +169,9 @@ public class Tr069Provider extends ContentProvider {
                 values.put(COLUMN_NAME, name);
             }
         }
-        LogUtil.i(TAG, "update(" + uri.toString() + ")");
-        LogUtil.i(TAG, "name=[" + name + "]");
-        LogUtil.d(TAG, "value=[" + value + "]");
+        LogUtils.i(TAG, "update(" + uri.toString() + ")");
+        LogUtils.i(TAG, "name=[" + name + "]");
+        LogUtils.d(TAG, "value=[" + value + "]");
         String select = null;
         String selectArgs[] = null;
         String table = (String) uri.getPathSegments().get(0);
@@ -202,7 +202,7 @@ public class Tr069Provider extends ContentProvider {
         tmp.append("/");
         tmp.append(name.toString());
         Uri uri_tmp = Uri.parse(tmp.toString());
-        LogUtil.i(TAG, "uri_tmp=[" + uri_tmp + "]");
+        LogUtils.i(TAG, "uri_tmp=[" + uri_tmp + "]");
         Cursor mCursor = query(uri_tmp, null, null, null, null);
         if (mCursor != null) {
             if (!mCursor.moveToFirst()) {
@@ -212,7 +212,7 @@ public class Tr069Provider extends ContentProvider {
             mCursor.close();
             return true;
         }
-        LogUtil.e(TAG, "query failed!! ");
+        LogUtils.e(TAG, "query failed!! ");
         return false;
     }
 

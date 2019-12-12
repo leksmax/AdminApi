@@ -2,7 +2,7 @@ package com.konka.kksdtr069.util;
 
 import android.util.Log;
 
-public class LogUtil {
+public class LogUtils {
 
     private static final int VERBOSE = 1;
     private static final int DEBUG = 2;
@@ -11,7 +11,7 @@ public class LogUtil {
     private static final int ERROR = 5;
     public static final int NOTHING = 6;
 
-    private static final int LEVEL = Integer.parseInt(Utils.getProperty("persist.konka.debug", INFO + ""));
+    private static final int LEVEL = Integer.parseInt(PropertyUtils.getProperty("persist.konka.debug", INFO + ""));
 
     public static void v(String tag, String msg) {
         if (LEVEL <= VERBOSE) {

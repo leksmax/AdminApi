@@ -1,4 +1,4 @@
-package com.konka.kksdtr069.model;
+package com.konka.kksdtr069.handler;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
