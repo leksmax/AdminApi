@@ -125,7 +125,7 @@ public class ProtocolObserver extends BaseObserver {
                     mProtocolService = ICWMPProtocolService.Stub.asInterface(service);
                     LogUtils.d(TAG, "ICWMPProtocolService connect successfully," +
                             "service = " + service);
-                    service.linkToDeath(mDeathRecipient, 0);
+                    mProtocolService.asBinder().linkToDeath(mDeathRecipient, 0);
                 } else {
                     Intent service = new Intent("net.sunniwell.action.START_CWMP_SERVICE");
                     context.bindService(service, mConnection, Context.BIND_AUTO_CREATE);
