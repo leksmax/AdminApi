@@ -1,6 +1,5 @@
 package com.konka.kksdtr069.handler.impl;
 
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.RemoteException;
 
@@ -27,8 +26,7 @@ public class ParameterHandlerImpl implements ParameterHandler {
 
     @Override
     public List<CWMPParameter> getParameterBySuperName(String path) throws RemoteException {
-        Cursor cursor = dbHandler.fuzzyQueryByName(path);
-        return dbHandler.cursorToList(cursor);
+        return dbHandler.fuzzyQueryByName(path);
     }
 
     @Override
@@ -37,14 +35,12 @@ public class ParameterHandlerImpl implements ParameterHandler {
                 "Device.DeviceInfo", "Device.ManagementServer", "Device.Time",
                 "Device.LAN", "Device.X_CMCC_OTV.STBInfo", "Device.X_CMCC_OTV.ServiceInfo",
                 "Device.X_00E0FC.SoftwareVersionList"};
-        Cursor cursor = dbHandler.fuzzyQueryByNames(names);
-        return dbHandler.cursorToList(cursor);
+        return dbHandler.fuzzyQueryByNames(names);
     }
 
     @Override
     public CWMPParameter getParameter(String name) throws RemoteException {
-        Cursor cursor = dbHandler.queryByNameForCursor(name);
-        return dbHandler.cursorToCWMPParameter(cursor);
+        return dbHandler.queryByName(name);
     }
 
     @Override

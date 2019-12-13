@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
-import android.os.Looper;
 import android.os.RemoteException;
 
 import com.konka.kksdtr069.base.BaseApplication;
@@ -112,7 +111,7 @@ public class ProtocolObserver extends BaseObserver {
                 emitter.onNext(context.bindService(service, mConnection, Context.BIND_AUTO_CREATE));
                 emitter.onComplete();
             }
-        }).subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.from(Looper.myLooper()))
+        }).subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread())
                 .subscribe(consumer);
         addObserver(mProtocolDisposable);
     }

@@ -67,9 +67,12 @@ public class DBHandlerImpl implements DBHandler {
     }
 
     @Override
-    public Cursor queryByNameForCursor(String name) throws RemoteException {
-        return context.getContentResolver().query(Uri.withAppendedPath(URI, name), null,
-                "name=?", new String[]{name}, null);
+    public CWMPParameter queryByName(String name) throws RemoteException {
+        Cursor cursor = context.getContentResolver().query(Uri.withAppendedPath(URI,
+                name), null, "name=?", new String[]{name}, null);
+        CWMPParameter parameter = cursorToCWMPParameter(cursor);
+        cursor.close();
+        return parameter;
     }
 
     @Override
@@ -86,13 +89,16 @@ public class DBHandlerImpl implements DBHandler {
     }
 
     @Override
-    public Cursor fuzzyQueryByName(String path) throws RemoteException {
-        return context.getContentResolver().query(URI, null,
+    public List<CWMPParameter> fuzzyQueryByName(String path) throws RemoteException {
+        Cursor query = context.getContentResolver().query(URI, null,
                 "name like '%" + path + "%'", null, null);
+        List<CWMPParameter> cwmpParameters = cursorToList(query);
+        query.close();
+        return cwmpParameters;
     }
 
     @Override
-    public Cursor fuzzyQueryByNames(String[] names) throws RemoteException {
+    public List<CWMPParameter> fuzzyQueryByNames(String[] names) throws RemoteException {
         StringBuilder selection = new StringBuilder();
         selection.append("name REGEXP ");
         for (int i = 0; i < names.length; i++) {
@@ -104,12 +110,14 @@ public class DBHandlerImpl implements DBHandler {
                 selection.append(" " + names[i] + " |");
             }
         }
-        return context.getContentResolver().query(URI, null, selection.toString()
+        Cursor query = context.getContentResolver().query(URI, null, selection.toString()
                 , null, null);
+        List<CWMPParameter> cwmpParameters = cursorToList(query);
+        query.close();
+        return cwmpParameters;
     }
 
-    @Override
-    public CWMPParameter cursorToCWMPParameter(Cursor cursor) throws RemoteException {
+    private CWMPParameter cursorToCWMPParameter(Cursor cursor) throws RemoteException {
         return new CWMPParameter(cursor.getString(cursor.getColumnIndex(COLUMN_NAME)),
                 cursor.getString(cursor.getColumnIndex(COLUMN_VALUE)),
                 cursor.getString(cursor.getColumnIndex(COLUMN_TYPE)),
@@ -118,8 +126,7 @@ public class DBHandlerImpl implements DBHandler {
                 cursor.getInt(cursor.getColumnIndex(COLUMN_NOTIFICATION)));
     }
 
-    @Override
-    public List<CWMPParameter> cursorToList(Cursor cursor) throws RemoteException {
+    private List<CWMPParameter> cursorToList(Cursor cursor) throws RemoteException {
         ArrayList<CWMPParameter> list = new ArrayList<CWMPParameter>();
         CWMPParameter parameter = null;
         while (cursor.moveToNext()) {

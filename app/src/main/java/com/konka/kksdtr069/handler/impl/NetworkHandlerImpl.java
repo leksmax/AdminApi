@@ -92,15 +92,13 @@ public class NetworkHandlerImpl implements NetworkHandler {
             dbHandler.update("Device.LAN.AddressingType", netMode);
             if ("PPPoE".equals(netMode)) {
                 // 若当前是PPPoE网络，将PPPoE账号参数加入上报缓存
-                CWMPParameter pppoeParameter = dbHandler.cursorToCWMPParameter(
-                        dbHandler.queryByNameForCursor(
-                                "Device.X_CMCC_OTV.ServiceInfo.PPPoEID"));
+                CWMPParameter pppoeParameter = dbHandler.queryByName("Device.X_CMCC_OTV." +
+                        "ServiceInfo.PPPoEID");
                 LogUtils.i(TAG, "updateNet: PPPoE id is" + pppoeParameter.getValue());
                 parameterCacheList.add(pppoeParameter);
             }
             // 将网络类型参数加入上报缓存
-            CWMPParameter netParameter = dbHandler.cursorToCWMPParameter(
-                    dbHandler.queryByNameForCursor("Device.LAN.AddressingType"));
+            CWMPParameter netParameter = dbHandler.queryByName("Device.LAN.AddressingType");
             parameterCacheList.add(netParameter);
         }
 
@@ -108,8 +106,7 @@ public class NetworkHandlerImpl implements NetworkHandler {
             // IP地址发生变化
             oldIpAddress = dbHandler.queryByNameForString("Device.LAN.IPAddress");
             dbHandler.update("Device.LAN.IPAddress", ipAddress);
-            CWMPParameter netParameter = dbHandler.cursorToCWMPParameter(
-                    dbHandler.queryByNameForCursor("Device.LAN.IPAddress"));
+            CWMPParameter netParameter = dbHandler.queryByName("Device.LAN.IPAddress");
             parameterCacheList.add(netParameter);
             // 上报新旧IP
             mProtocolPresenter.networkChanged(ipAddress, oldIpAddress);

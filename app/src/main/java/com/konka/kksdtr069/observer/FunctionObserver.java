@@ -53,7 +53,7 @@ public class FunctionObserver extends BaseObserver {
                 emitter.onComplete();
             }
         }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.from(Looper.myLooper()))
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<CWMPPingResult>() {
                     @Override
                     public void accept(CWMPPingResult pingResult) throws RemoteException {
@@ -93,7 +93,7 @@ public class FunctionObserver extends BaseObserver {
                 emitter.onComplete();
 
             }
-        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.from(Looper.myLooper()))
+        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<CWMPTraceRouteResult>() {
                     @Override
                     public void accept(CWMPTraceRouteResult traceResult) throws RemoteException {

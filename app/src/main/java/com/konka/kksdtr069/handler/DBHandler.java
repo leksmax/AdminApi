@@ -19,17 +19,13 @@ public interface DBHandler {
 
     Uri insert(ContentValues cv) throws RemoteException;
 
-    Cursor queryByNameForCursor(String name) throws RemoteException;
+    CWMPParameter queryByName(String name) throws RemoteException;
 
     String queryByNameForString(String name) throws RemoteException;
 
-    Cursor fuzzyQueryByName(String path) throws RemoteException;
+    List<CWMPParameter> fuzzyQueryByName(String path) throws RemoteException;
 
-    Cursor fuzzyQueryByNames(String[] names) throws RemoteException;
-
-    CWMPParameter cursorToCWMPParameter(Cursor cursor) throws RemoteException;
-
-    List<CWMPParameter> cursorToList(Cursor cursor) throws RemoteException;
+    List<CWMPParameter> fuzzyQueryByNames(String[] names) throws RemoteException;
 
     boolean isDifferentFromDB(String targetValue, String queryStr) throws RemoteException;
 }
