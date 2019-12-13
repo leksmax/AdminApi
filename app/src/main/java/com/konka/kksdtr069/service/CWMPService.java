@@ -14,7 +14,6 @@ import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPSetParameterAttributesStruct;
 import net.sunniwell.cwmp.protocol.sdk.aidl.ICWMPNativeService;
 import net.sunniwell.cwmp.protocol.sdk.aidl.SetParameterValuesFault;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,13 +21,11 @@ public class CWMPService extends ICWMPNativeService.Stub {
 
     private static final String TAG = "Tr069_CWMPService";
 
-    private WeakReference<FunctionHandlerImpl> functionHandler =
-            new WeakReference<FunctionHandlerImpl>(FunctionHandlerImpl.getInstance());
+    private FunctionHandlerImpl functionHandler = FunctionHandlerImpl.getInstance();
 
     private ParameterHandlerImpl parameterHandler = ParameterHandlerImpl.getInstance();
 
-    private WeakReference<SystemHandler> systemHandler =
-            new WeakReference<SystemHandler>(SystemHandlerImpl.getInstance());
+    private SystemHandler systemHandler = SystemHandlerImpl.getInstance();
 
     /**
      * @return 获取Inform报文需要的参数列表
@@ -94,13 +91,13 @@ public class CWMPService extends ICWMPNativeService.Stub {
     @Override
     public List<SetParameterValuesFault> setParameters(List<CWMPParameter> list) throws RemoteException {
         ArrayList<SetParameterValuesFault> faultList = new ArrayList<SetParameterValuesFault>();
-        faultList.addAll(functionHandler.get().pingDiagnosis(list));
-        faultList.addAll(functionHandler.get().traceRouteDiagnosis(list));
-        faultList.addAll(functionHandler.get().remoteNetPacketCapture(list)); // 未实现
-        faultList.addAll(functionHandler.get().terminalSpeedMeasurement(list)); // 未实现
-        faultList.addAll(functionHandler.get().captureAndUploadLog(list)); // 未实现
-        faultList.addAll(functionHandler.get().wifiEnable(list)); // 未实现
-        faultList.addAll(functionHandler.get().modifyQRCodeDisplay(list)); // 未实现
+        faultList.addAll(functionHandler.pingDiagnosis(list));
+        faultList.addAll(functionHandler.traceRouteDiagnosis(list));
+        faultList.addAll(functionHandler.remoteNetPacketCapture(list)); // 未实现
+        faultList.addAll(functionHandler.terminalSpeedMeasurement(list)); // 未实现
+        faultList.addAll(functionHandler.captureAndUploadLog(list)); // 未实现
+        faultList.addAll(functionHandler.wifiEnable(list)); // 未实现
+        faultList.addAll(functionHandler.modifyQRCodeDisplay(list)); // 未实现
         return faultList;
     }
 
@@ -108,8 +105,8 @@ public class CWMPService extends ICWMPNativeService.Stub {
      * 远程重启
      */
     @Override
-    public void reboot() throws RemoteException {
-        systemHandler.get().reboot();
+    public void reboot() {
+        systemHandler.reboot();
     }
 
     /**
@@ -118,8 +115,8 @@ public class CWMPService extends ICWMPNativeService.Stub {
      * @param clearUserData true则擦除用户数据；false则不擦除用户数据；参数无意义
      */
     @Override
-    public void factoryReset(boolean clearUserData) throws RemoteException {
-        systemHandler.get().FactoryReset();
+    public void factoryReset(boolean clearUserData) {
+        systemHandler.FactoryReset();
     }
 
     /**
@@ -128,8 +125,8 @@ public class CWMPService extends ICWMPNativeService.Stub {
      * @param cwmpDownloadRequest 请求下载需要传递的参数
      */
     @Override
-    public void download(CWMPDownloadRequest cwmpDownloadRequest) throws RemoteException {
-        systemHandler.get().download(cwmpDownloadRequest);
+    public void download(CWMPDownloadRequest cwmpDownloadRequest) {
+        systemHandler.download(cwmpDownloadRequest);
     }
 
     /**
@@ -139,8 +136,8 @@ public class CWMPService extends ICWMPNativeService.Stub {
      * @param isSuccess 登入是否成功
      */
     @Override
-    public void onLogin(int type, boolean isSuccess) throws RemoteException {
-        systemHandler.get().onLogin(type, isSuccess);
+    public void onLogin(int type, boolean isSuccess) {
+        systemHandler.onLogin(type, isSuccess);
     }
 
     /**
@@ -149,8 +146,8 @@ public class CWMPService extends ICWMPNativeService.Stub {
      * @param list 需要卸载的apk列表信息
      */
     @Override
-    public void uninstall(List<AppID> list) throws RemoteException {
-        systemHandler.get().appUninstall(list);
+    public void uninstall(List<AppID> list) {
+        systemHandler.appUninstall(list);
     }
 
     @Override

@@ -2,7 +2,6 @@ package com.konka.kksdtr069.handler.impl;
 
 import android.content.Context;
 import android.content.Intent;
-import android.os.RemoteException;
 
 import com.konka.kksdtr069.base.BaseApplication;
 import com.konka.kksdtr069.handler.SystemHandler;
@@ -13,14 +12,12 @@ import com.konka.kksdtr069.util.LogUtils;
 import net.sunniwell.cwmp.protocol.sdk.aidl.AppID;
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPDownloadRequest;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
 public class SystemHandlerImpl implements SystemHandler {
 
-    private WeakReference<ProtocolObserver> protocolObserver =
-            new WeakReference<ProtocolObserver>(ProtocolObserver.getInstance());
+    private ProtocolObserver protocolObserver = ProtocolObserver.getInstance();
 
     private Context context;
 
@@ -29,32 +26,28 @@ public class SystemHandlerImpl implements SystemHandler {
     public static final String TAG = SystemHandlerImpl.class.getSimpleName();
 
     private SystemHandlerImpl() {
-        context = BaseApplication.getInstance().getApplicationContext();
+        context = BaseApplication.instance.getApplicationContext();
     }
 
     public static SystemHandlerImpl getInstance() {
         if (instance == null) {
-            synchronized (SystemHandlerImpl.class) {
-                if (instance == null) {
-                    instance = new SystemHandlerImpl();
-                }
-            }
+            instance = new SystemHandlerImpl();
         }
         return instance;
     }
 
     @Override
-    public void appUninstall(List<AppID> list) throws RemoteException {
+    public void appUninstall(List<AppID> list) {
         List<AppID> resultList = new ArrayList<AppID>();
         for (AppID app : list) {
             int result = LinuxUtils.execCommand("pm", "uninstall", app.packageName);
             resultList.add(new AppID(app.packageName, result));
         }
-        protocolObserver.get().uninstallFinish(resultList);
+        protocolObserver.uninstallFinish(resultList);
     }
 
     @Override
-    public void download(CWMPDownloadRequest request) throws RemoteException {
+    public void download(CWMPDownloadRequest request) {
         LogUtils.i(TAG, "download type:" + request.getType()
                 + " url:" + request.getUrl()
                 + " commandKey:" + request.getCommandKey());
@@ -67,14 +60,14 @@ public class SystemHandlerImpl implements SystemHandler {
     }
 
     @Override
-    public void FactoryReset() throws RemoteException {
+    public void FactoryReset() {
         LogUtils.d(TAG, "factoryReset");
         Intent intent = new Intent("android.intent.action.MASTER_CLEAR");
         context.sendBroadcast(intent);
     }
 
     @Override
-    public void reboot() throws RemoteException {
+    public void reboot() {
         LogUtils.d(TAG, "reboot");
         Intent intent = new Intent(Intent.ACTION_REBOOT);
         intent.putExtra("nowait", 1);
@@ -84,7 +77,7 @@ public class SystemHandlerImpl implements SystemHandler {
     }
 
     @Override
-    public void onLogin(int type, boolean isSuccess) throws RemoteException {
+    public void onLogin(int type, boolean isSuccess) {
         String rs = type == 1 ? "重启时登入" : "首次开机登入";
         LogUtils.d(TAG, "onLogin()" + "\n"
                 + "Login Type: " + rs + "\n"

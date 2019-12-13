@@ -14,7 +14,11 @@ public class Tr069Client extends AppCompatActivity {
 
     private static final String TAG = "Tr069_Client";
 
-    private DBObserver dbObserver;
+    private DBObserver dbObserver=DBObserver.getInstance();
+
+    private NetObserver netObserver=NetObserver.getInstance();
+
+    private ProtocolObserver protocolObserver=ProtocolObserver.getInstance();
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -24,9 +28,8 @@ public class Tr069Client extends AppCompatActivity {
     }
 
     public void init() {
-        getLifecycle().addObserver(ProtocolObserver.getInstance());
-        getLifecycle().addObserver(NetObserver.getInstance());
-        dbObserver = DBObserver.getInstance();
+        protocolObserver.initCWMPService();
+        netObserver.registerNetReceiver();
         dbObserver.registerDBObserver(dbObserver);
     }
 
@@ -39,5 +42,7 @@ public class Tr069Client extends AppCompatActivity {
 
     private void release() {
         dbObserver.unRegisterDBObserver(dbObserver);
+        netObserver.unregisterNetReceiver();
+        protocolObserver.release();
     }
 }

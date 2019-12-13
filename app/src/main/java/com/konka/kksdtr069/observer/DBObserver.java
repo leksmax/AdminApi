@@ -4,14 +4,12 @@ import android.content.Context;
 import android.database.ContentObserver;
 import android.net.Uri;
 import android.os.Handler;
-import android.os.RemoteException;
 
 import com.konka.kksdtr069.base.BaseApplication;
 import com.konka.kksdtr069.handler.impl.DBHandlerImpl;
 
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPParameter;
 
-import java.lang.ref.WeakReference;
 import java.util.List;
 
 public class DBObserver extends ContentObserver {
@@ -24,21 +22,16 @@ public class DBObserver extends ContentObserver {
 
     private static DBObserver instance;
 
-    private WeakReference<ProtocolObserver> protocolPresenter =
-            new WeakReference<ProtocolObserver>(ProtocolObserver.getInstance());
+    private ProtocolObserver protocolPresenter = ProtocolObserver.getInstance();
 
     private DBObserver(Handler handler) {
         super(handler);
-        this.context = BaseApplication.getInstance().getApplicationContext();
+        this.context = BaseApplication.instance.getApplicationContext();
     }
 
     public static DBObserver getInstance() {
         if (instance == null) {
-            synchronized (DBObserver.class) {
-                if (instance == null) {
-                    instance = new DBObserver(new Handler());
-                }
-            }
+            instance = new DBObserver(new Handler());
         }
         return instance;
     }
@@ -61,10 +54,6 @@ public class DBObserver extends ContentObserver {
     @Override
     public void onChange(boolean selfChange) {
         super.onChange(selfChange);
-        try {
-            protocolPresenter.get().valueChanged(this.parameterCacheList);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
+        protocolPresenter.valueChanged(parameterCacheList);
     }
 }

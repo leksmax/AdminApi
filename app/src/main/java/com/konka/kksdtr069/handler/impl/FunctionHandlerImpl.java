@@ -3,7 +3,6 @@ package com.konka.kksdtr069.handler.impl;
 import android.content.Context;
 import android.os.RemoteException;
 
-import com.konka.kksdtr069.Exception.SetParameterValuesException;
 import com.konka.kksdtr069.base.BaseApplication;
 import com.konka.kksdtr069.handler.FunctionHandler;
 import com.konka.kksdtr069.observer.DBObserver;
@@ -16,9 +15,7 @@ import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPPingRequest;
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPTraceRouteRequest;
 import net.sunniwell.cwmp.protocol.sdk.aidl.SetParameterValuesFault;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class FunctionHandlerImpl implements FunctionHandler {
@@ -27,27 +24,21 @@ public class FunctionHandlerImpl implements FunctionHandler {
 
     private Context context;
 
-    private WeakReference<DBHandlerImpl> dbHandler = new WeakReference<DBHandlerImpl>(DBHandlerImpl.getInstance());
+    private DBHandlerImpl dbHandler = DBHandlerImpl.getInstance();
 
     private FunctionObserver functionPresenter = FunctionObserver.getInstance();
 
-    private WeakReference<ProtocolObserver> protocolPresenter =
-            new WeakReference<ProtocolObserver>(ProtocolObserver.getInstance());
+    private ProtocolObserver protocolPresenter = ProtocolObserver.getInstance();
 
-    private WeakReference<DBObserver> dbObserver =
-            new WeakReference<DBObserver>(DBObserver.getInstance());
+    private DBObserver dbObserver = DBObserver.getInstance();
 
     private FunctionHandlerImpl() {
-        context = BaseApplication.getInstance().getApplicationContext();
+        context = BaseApplication.instance.getApplicationContext();
     }
 
     public static FunctionHandlerImpl getInstance() {
         if (instance == null) {
-            synchronized (FunctionHandlerImpl.class) {
-                if (instance == null) {
-                    instance = new FunctionHandlerImpl();
-                }
-            }
+            instance = new FunctionHandlerImpl();
         }
         return instance;
     }
@@ -62,7 +53,7 @@ public class FunctionHandlerImpl implements FunctionHandler {
         String pingDSCP = "";
         List<SetParameterValuesFault> faultList = new ArrayList<SetParameterValuesFault>();
         for (CWMPParameter parameter : list) {
-            dbHandler.get().update(parameter);
+            dbHandler.update(parameter);
             String name = parameter.getName();
 
             if (name.contains("IPPingDiagnostics.DiagnosticsState") & pingState.equals("")) {
@@ -86,7 +77,7 @@ public class FunctionHandlerImpl implements FunctionHandler {
                     pingTimeout, pingDBS, pingDSCP);
             functionPresenter.observerPing(request);
         }
-        protocolPresenter.get().diagnosisFinish();
+        protocolPresenter.diagnosisFinish();
         return faultList;
     }
 
@@ -102,7 +93,7 @@ public class FunctionHandlerImpl implements FunctionHandler {
         String traceDSCP = "";
 
         for (CWMPParameter mCWMPParameter : list) {
-            dbHandler.get().update(mCWMPParameter);
+            dbHandler.update(mCWMPParameter);
             String name = mCWMPParameter.getName();
 
             if (name.contains("TraceRouteDiagnostics.DiagnosticsState") && traceState.equals("")) {
@@ -127,7 +118,7 @@ public class FunctionHandlerImpl implements FunctionHandler {
                     traceMHC, traceTimeout, traceDBS, traceDSCP);
             functionPresenter.observerTraceRoute(request);
         }
-        protocolPresenter.get().diagnosisFinish();
+        protocolPresenter.diagnosisFinish();
         return faultList;
     }
 
@@ -135,7 +126,7 @@ public class FunctionHandlerImpl implements FunctionHandler {
     public List<SetParameterValuesFault> terminalSpeedMeasurement(List<CWMPParameter> list) throws RemoteException {
         List<SetParameterValuesFault> faultList = new ArrayList<SetParameterValuesFault>();
         for (CWMPParameter parameter : list) {
-            dbHandler.get().update(parameter);
+            dbHandler.update(parameter);
         }
         // 终端测试待实现
         return faultList;
@@ -145,7 +136,7 @@ public class FunctionHandlerImpl implements FunctionHandler {
     public List<SetParameterValuesFault> remoteNetPacketCapture(List<CWMPParameter> list) throws RemoteException {
         List<SetParameterValuesFault> faultList = new ArrayList<SetParameterValuesFault>();
         for (CWMPParameter parameter : list) {
-            dbHandler.get().update(parameter);
+            dbHandler.update(parameter);
         }
         // 远程抓包、上传待实现
         return null;
@@ -155,7 +146,7 @@ public class FunctionHandlerImpl implements FunctionHandler {
     public List<SetParameterValuesFault> captureAndUploadLog(List<CWMPParameter> list) throws RemoteException {
         List<SetParameterValuesFault> faultList = new ArrayList<SetParameterValuesFault>();
         for (CWMPParameter parameter : list) {
-            dbHandler.get().update(parameter);
+            dbHandler.update(parameter);
         }
         // 抓取、上报日志待实现
         return null;
@@ -166,10 +157,10 @@ public class FunctionHandlerImpl implements FunctionHandler {
         ArrayList<SetParameterValuesFault> faultList = new ArrayList<SetParameterValuesFault>();
         ArrayList<CWMPParameter> parameterCacheList = new ArrayList<CWMPParameter>();
         for (CWMPParameter parameter : list) {
-            dbHandler.get().update(parameter);
+            dbHandler.update(parameter);
         }
         // 打开、关闭WiFi待实现
-        dbObserver.get().notifyChange(dbObserver.get(), parameterCacheList);
+        dbObserver.notifyChange(dbObserver, parameterCacheList);
         return faultList;
     }
 
@@ -177,7 +168,7 @@ public class FunctionHandlerImpl implements FunctionHandler {
     public List<SetParameterValuesFault> modifyQRCodeDisplay(List<CWMPParameter> list) throws RemoteException {
         ArrayList<SetParameterValuesFault> faultList = new ArrayList<SetParameterValuesFault>();
         for (CWMPParameter parameter : list) {
-            dbHandler.get().update(parameter);
+            dbHandler.update(parameter);
         }
         // 修改电视二维码显示文字待实现
         return faultList;

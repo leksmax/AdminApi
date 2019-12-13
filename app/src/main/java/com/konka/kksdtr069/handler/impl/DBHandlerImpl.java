@@ -32,23 +32,17 @@ public class DBHandlerImpl implements DBHandler {
 
     public static final String COLUMN_NOTIFICATION = "notification";
 
-    private static final String SELECTION = "name=?";
-
     private Context context;
 
     private static DBHandlerImpl instance;
 
     private DBHandlerImpl() {
-        this.context = BaseApplication.getInstance().getApplicationContext();
+        this.context = BaseApplication.instance.getApplicationContext();
     }
 
     public static DBHandlerImpl getInstance() {
         if (instance == null) {
-            synchronized (DBHandlerImpl.class) {
-                if (instance == null) {
-                    instance = new DBHandlerImpl();
-                }
-            }
+            instance = new DBHandlerImpl();
         }
         return instance;
     }
@@ -57,7 +51,7 @@ public class DBHandlerImpl implements DBHandler {
     public int update(String name, String value) throws RemoteException {
         ContentValues cv = new ContentValues();
         cv.put("value", value);
-        return context.getContentResolver().update(URI, cv, SELECTION, new String[]{name});
+        return context.getContentResolver().update(URI, cv, "name=?", new String[]{name});
     }
 
     @Override
@@ -68,14 +62,14 @@ public class DBHandlerImpl implements DBHandler {
         cv.put(COLUMN_WRITABLE, parameter.isWritable() ? 1 : 0);
         cv.put(COLUMN_SECURE, parameter.isSecure() ? 1 : 0);
         cv.put(COLUMN_NOTIFICATION, parameter.getNotification());
-        return context.getContentResolver().update(URI, cv, SELECTION,
+        return context.getContentResolver().update(URI, cv, "name=?",
                 new String[]{parameter.getName()});
     }
 
     @Override
     public Cursor queryByNameForCursor(String name) throws RemoteException {
         return context.getContentResolver().query(Uri.withAppendedPath(URI, name), null,
-                SELECTION, new String[]{name}, null);
+                "name=?", new String[]{name}, null);
     }
 
     @Override
@@ -83,7 +77,7 @@ public class DBHandlerImpl implements DBHandler {
         Cursor cursor = null;
         String value = "";
         cursor = context.getContentResolver().query(Uri.withAppendedPath(URI, name), null,
-                SELECTION, new String[]{name}, null);
+                "name=?", new String[]{name}, null);
         if (cursor != null && cursor.moveToNext()) {
             value = cursor.getString(cursor.getColumnIndex(COLUMN_VALUE));
             cursor.close();

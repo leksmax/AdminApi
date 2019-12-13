@@ -28,25 +28,6 @@
                 <category android:name="android.intent.category.HOME" />
             </intent-filter>
         </activity>
-
-        <receiver
-            android:name=".receiver.BootReceiver"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>
-        <!--
-<receiver
-            android:name=".receiver.NetBroadcastReceiver"
-            android:enabled="true"
-            android:exported="true"></receiver>
-        <receiver
-            android:name=".base.BaseReceiver"
-            android:enabled="true"
-            android:exported="true" />
-        -->
         <provider
             android:name=".handler.Tr069Provider"
             android:authorities="tr069"

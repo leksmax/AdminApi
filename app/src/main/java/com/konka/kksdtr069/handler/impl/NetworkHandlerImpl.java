@@ -14,7 +14,6 @@ import com.konka.kksdtr069.util.PropertyUtils;
 
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPParameter;
 
-import java.lang.ref.WeakReference;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -28,14 +27,11 @@ public class NetworkHandlerImpl implements NetworkHandler {
 
     private Context context;
 
-    private WeakReference<DBHandlerImpl> dbHandler =
-            new WeakReference<DBHandlerImpl>(DBHandlerImpl.getInstance());
+    private DBHandlerImpl dbHandler = DBHandlerImpl.getInstance();
 
-    private WeakReference<ProtocolObserver> mProtocolPresenter =
-            new WeakReference<ProtocolObserver>(ProtocolObserver.getInstance());
+    private ProtocolObserver mProtocolPresenter = ProtocolObserver.getInstance();
 
-    private WeakReference<DBObserver> dbObserver =
-            new WeakReference<DBObserver>(DBObserver.getInstance());
+    private DBObserver dbObserver = DBObserver.getInstance();
 
     private static final String ETHERNET_CONN_MODE_DHCP = "DHCP";
 
@@ -52,16 +48,12 @@ public class NetworkHandlerImpl implements NetworkHandler {
     public static final String TAG = NetworkHandlerImpl.class.getSimpleName();
 
     private NetworkHandlerImpl() {
-        this.context = BaseApplication.getInstance().getApplicationContext();
+        this.context = BaseApplication.instance.getApplicationContext();
     }
 
     public static NetworkHandlerImpl getInstance() {
         if (instance == null) {
-            synchronized (NetworkHandlerImpl.class) {
-                if (instance == null) {
-                    instance = new NetworkHandlerImpl();
-                }
-            }
+            instance = new NetworkHandlerImpl();
         }
         return instance;
     }
@@ -90,43 +82,43 @@ public class NetworkHandlerImpl implements NetworkHandler {
 
         LogUtils.i(TAG, String.format("updateNet: ipAddress = %s,netMode = %s", ipAddress, netMode));
 
-        boolean isNetModeChanged = dbHandler.get().isDifferentFromDB(netMode,
+        boolean isNetModeChanged = dbHandler.isDifferentFromDB(netMode,
                 "Device.LAN.AddressingType");
-        boolean isIpAddressChanged = dbHandler.get().isDifferentFromDB(ipAddress,
+        boolean isIpAddressChanged = dbHandler.isDifferentFromDB(ipAddress,
                 "Device.LAN.IPAddress");
 
         if (isNetModeChanged) {
             // 网络类型发生变化
-            dbHandler.get().update("Device.LAN.AddressingType", netMode);
+            dbHandler.update("Device.LAN.AddressingType", netMode);
             if ("PPPoE".equals(netMode)) {
                 // 若当前是PPPoE网络，将PPPoE账号参数加入上报缓存
-                CWMPParameter pppoeParameter = dbHandler.get().cursorToCWMPParameter(
-                        dbHandler.get().queryByNameForCursor(
+                CWMPParameter pppoeParameter = dbHandler.cursorToCWMPParameter(
+                        dbHandler.queryByNameForCursor(
                                 "Device.X_CMCC_OTV.ServiceInfo.PPPoEID"));
                 LogUtils.i(TAG, "updateNet: PPPoE id is" + pppoeParameter.getValue());
                 parameterCacheList.add(pppoeParameter);
             }
             // 将网络类型参数加入上报缓存
-            CWMPParameter netParameter = dbHandler.get().cursorToCWMPParameter(
-                    dbHandler.get().queryByNameForCursor("Device.LAN.AddressingType"));
+            CWMPParameter netParameter = dbHandler.cursorToCWMPParameter(
+                    dbHandler.queryByNameForCursor("Device.LAN.AddressingType"));
             parameterCacheList.add(netParameter);
         }
 
         if (isIpAddressChanged) {
             // IP地址发生变化
-            oldIpAddress = dbHandler.get().queryByNameForString("Device.LAN.IPAddress");
-            dbHandler.get().update("Device.LAN.IPAddress", ipAddress);
-            CWMPParameter netParameter = dbHandler.get().cursorToCWMPParameter(
-                    dbHandler.get().queryByNameForCursor("Device.LAN.IPAddress"));
+            oldIpAddress = dbHandler.queryByNameForString("Device.LAN.IPAddress");
+            dbHandler.update("Device.LAN.IPAddress", ipAddress);
+            CWMPParameter netParameter = dbHandler.cursorToCWMPParameter(
+                    dbHandler.queryByNameForCursor("Device.LAN.IPAddress"));
             parameterCacheList.add(netParameter);
             // 上报新旧IP
-            mProtocolPresenter.get().networkChanged(ipAddress, oldIpAddress);
+            mProtocolPresenter.networkChanged(ipAddress, oldIpAddress);
             LogUtils.i(TAG, "updateNet: onNetworkChanged");
         }
 
         if (!parameterCacheList.isEmpty()) {
             // 如果参数上报缓存不为空，向平台上报
-            dbObserver.get().notifyChange(dbObserver.get(), parameterCacheList);
+            dbObserver.notifyChange(dbObserver, parameterCacheList);
             LogUtils.i(TAG, "updateNet: report parameters in parameterCacheList.");
             parameterCacheList.clear();
         }
@@ -187,7 +179,7 @@ public class NetworkHandlerImpl implements NetworkHandler {
                     // 更新数据库中的PPPoE账号，将参数加入上报缓存
                     String pppoeAcount = PropertyUtils.getProperty("persist.sys.pppoeaccount",
                             "Unknow");
-                    dbHandler.get().update("Device.X_CMCC_OTV.ServiceInfo.PPPoEID",
+                    dbHandler.update("Device.X_CMCC_OTV.ServiceInfo.PPPoEID",
                             pppoeAcount);
                     ethHostAddress = getIP(networkInterface);
                     /*测试发现DHCP切换成PPPoE会有两个ip，多一个eth0的，但是会先扫描到ppp0，

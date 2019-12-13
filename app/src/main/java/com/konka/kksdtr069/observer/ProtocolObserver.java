@@ -5,10 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.RemoteException;
-
-import androidx.lifecycle.Lifecycle;
-import androidx.lifecycle.OnLifecycleEvent;
 
 import com.konka.kksdtr069.base.BaseApplication;
 import com.konka.kksdtr069.base.BaseObserver;
@@ -20,7 +18,6 @@ import net.sunniwell.cwmp.protocol.sdk.aidl.AppID;
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPParameter;
 import net.sunniwell.cwmp.protocol.sdk.aidl.ICWMPProtocolService;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,8 +39,7 @@ public class ProtocolObserver extends BaseObserver {
 
     private Disposable mProtocolDisposable;
 
-    private WeakReference<NetworkHandlerImpl> networkHandler =
-            new WeakReference<NetworkHandlerImpl>(NetworkHandlerImpl.getInstance());
+    private NetworkHandlerImpl networkHandler = NetworkHandlerImpl.getInstance();
 
     private List<CWMPParameter> parameterCacheList;
 
@@ -60,7 +56,7 @@ public class ProtocolObserver extends BaseObserver {
             try {
                 initNativeService();
                 // 每次启动更新网络类型和IP地址
-                networkHandler.get().updateNetwork(parameterCacheList);
+                networkHandler.updateNetwork(parameterCacheList);
             } catch (RemoteException e) {
                 LogUtils.e(TAG, "ICWMPProtocolService error");
                 e.printStackTrace();
@@ -78,29 +74,28 @@ public class ProtocolObserver extends BaseObserver {
     private IBinder.DeathRecipient mDeathRecipient = new IBinder.DeathRecipient() {
         @Override
         public void binderDied() {
-            if (mProtocolService == null) return;
+            if (mProtocolService == null) {
+                Intent service = new Intent("net.sunniwell.action.START_CWMP_SERVICE");
+                context.bindService(service, mConnection, Context.BIND_AUTO_CREATE);
+                LogUtils.d(TAG, "[binderDied] service has been reconnected");
+                return;
+            }
             mProtocolService.asBinder().unlinkToDeath(mDeathRecipient, 0);
-            mProtocolService = null;
         }
     };
 
     private ProtocolObserver() {
-        this.context = BaseApplication.getInstance().getApplicationContext();
+        this.context = BaseApplication.instance.getApplicationContext();
         this.parameterCacheList = new ArrayList<CWMPParameter>();
     }
 
     public static ProtocolObserver getInstance() {
         if (instance == null) {
-            synchronized (ProtocolObserver.class) {
-                if (instance == null) {
-                    instance = new ProtocolObserver();
-                }
-            }
+            instance = new ProtocolObserver();
         }
         return instance;
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
     public void initCWMPService() {
         bindCWMPServiceObserver(mConnection, bindCWMPServiceConsumer);
     }
@@ -117,7 +112,7 @@ public class ProtocolObserver extends BaseObserver {
                 emitter.onNext(context.bindService(service, mConnection, Context.BIND_AUTO_CREATE));
                 emitter.onComplete();
             }
-        }).subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread())
+        }).subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.from(Looper.myLooper()))
                 .subscribe(consumer);
         addObserver(mProtocolDisposable);
     }
@@ -128,39 +123,94 @@ public class ProtocolObserver extends BaseObserver {
             public void accept(Boolean bindServiceResult) throws Exception {
                 if (bindServiceResult) {
                     mProtocolService = ICWMPProtocolService.Stub.asInterface(service);
+                    LogUtils.d(TAG, "ICWMPProtocolService connect successfully," +
+                            "service = " + service);
                     service.linkToDeath(mDeathRecipient, 0);
-                    LogUtils.d(TAG, "ICWMPProtocolService connect successfully");
+                } else {
+                    Intent service = new Intent("net.sunniwell.action.START_CWMP_SERVICE");
+                    context.bindService(service, mConnection, Context.BIND_AUTO_CREATE);
+                    LogUtils.d(TAG, "[bindCWMPServiceConsumer] service has been reconnected,"
+                            + "service = " + service);
                 }
             }
         };
     }
 
-    public void initNativeService() throws RemoteException {
-        // 提供本地接口服务对象给朝歌中间件
-        mProtocolService.setNativeService(new CWMPService());
-        // 通知朝歌中间件启动完成
-        mProtocolService.onBoot();
-        LogUtils.i(TAG, "ProtocolService boot finished.");
+    public void initNativeService() {
+        new Thread() {
+            @Override
+            public void run() {
+                super.run();
+                try {
+                    // 提供本地接口服务对象给朝歌中间件
+                    mProtocolService.setNativeService(new CWMPService());
+                    // 通知朝歌中间件启动完成
+                    mProtocolService.onBoot();
+                    LogUtils.i(TAG, "ProtocolService boot finished.");
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
     }
 
-    public void networkChanged(String ipAddress, String oldIpAddress) throws RemoteException {
-        mProtocolService.onNetworkChanged(ipAddress, oldIpAddress);
+    public void networkChanged(final String ipAddress, final String oldIpAddress) {
+        new Thread() {
+            @Override
+            public void run() {
+                super.run();
+                try {
+                    mProtocolService.onNetworkChanged(ipAddress, oldIpAddress);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
     }
 
-    public void valueChanged(List<CWMPParameter> parameterCacheList) throws RemoteException {
-        mProtocolService.onValueChange(parameterCacheList);
+    public void valueChanged(final List<CWMPParameter> parameterCacheList) {
+        new Thread() {
+            @Override
+            public void run() {
+                super.run();
+                try {
+                    mProtocolService.onValueChange(parameterCacheList);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
     }
 
-    public void diagnosisFinish() throws RemoteException {
-        mProtocolService.onDiagnosisFinish();
-
+    public void diagnosisFinish() {
+        new Thread() {
+            @Override
+            public void run() {
+                super.run();
+                try {
+                    mProtocolService.onDiagnosisFinish();
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
     }
 
-    public void uninstallFinish(List<AppID> list) throws RemoteException {
-        mProtocolService.onUninstallFinish(list);
+    public void uninstallFinish(final List<AppID> list) {
+        new Thread() {
+            @Override
+            public void run() {
+                super.run();
+                try {
+                    mProtocolService.onUninstallFinish(list);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+
     public void release() {
         if (mProtocolService != null) {
             mProtocolService = null;

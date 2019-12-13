@@ -1,7 +1,5 @@
 package com.konka.kksdtr069.Exception;
 
-import net.sunniwell.cwmp.protocol.sdk.aidl.SetParameterValuesFault;
-
 import java.util.HashMap;
 
 public class SetParameterValuesException {
@@ -34,20 +32,5 @@ public class SetParameterValuesException {
         for (int i = 9800; i <= 9899; i++) {
             exceptionInformMap.put(i, "Vendor defined fault codes");
         }
-
-    }
-
-    public static SetParameterValuesFault checkoutFault(int result, String parameterName) {
-        String faultStr = exceptionInformMap.get(result);
-        if (faultStr != null) {
-            SetParameterValuesFault fault = new SetParameterValuesFault();
-            fault.setFaultCode(result);
-            fault.setFaultString(faultStr);
-            fault.setParameterName(parameterName);
-            return fault;
-        } else {
-            return null;
-        }
-
     }
 }

@@ -5,17 +5,12 @@ import android.content.Context;
 
 public class BaseApplication extends Application {
 
-    private static BaseApplication instance;
+    public static BaseApplication instance;
 
-    public static BaseApplication getInstance() {
-        if (instance == null) {
-            synchronized (BaseApplication.class) {
-                if (instance == null) {
-                    instance = new BaseApplication();
-                }
-            }
-        }
-        return instance;
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        instance = this;
     }
 
     @Override

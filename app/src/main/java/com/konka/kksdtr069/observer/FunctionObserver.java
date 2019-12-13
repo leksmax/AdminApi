@@ -14,8 +14,6 @@ import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPPingResult;
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPTraceRouteRequest;
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPTraceRouteResult;
 
-import java.lang.ref.WeakReference;
-
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
@@ -34,16 +32,11 @@ public class FunctionObserver extends BaseObserver {
 
     private ParameterHandlerImpl parameterHandler = ParameterHandlerImpl.getInstance();
 
-    private WeakReference<DBHandlerImpl> dbHandler =
-            new WeakReference<DBHandlerImpl>(DBHandlerImpl.getInstance());
+    private DBHandlerImpl dbHandler = DBHandlerImpl.getInstance();
 
     public static FunctionObserver getInstance() {
         if (instance == null) {
-            synchronized (FunctionObserver.class) {
-                if (instance == null) {
-                    instance = new FunctionObserver();
-                }
-            }
+            instance = new FunctionObserver();
         }
         return instance;
     }
@@ -125,7 +118,7 @@ public class FunctionObserver extends BaseObserver {
                         parameterHandler.setParameterValue(
                                 "Device.LAN.TraceRouteDiagnostics.NumberOfRouteHops",
                                 traceResult.getNumberOfRouteHops() + "");
-                        dbHandler.get().delete("TraceRouteDiagnostics.RouteHops");
+                        dbHandler.delete("TraceRouteDiagnostics.RouteHops");
                         for (int i = 0; i < traceResult.getRouteHops().size(); i++) {
                             ContentValues cv = new ContentValues();
                             cv.put(DBHandlerImpl.COLUMN_NAME,
