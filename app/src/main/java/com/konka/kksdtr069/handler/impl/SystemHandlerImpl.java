@@ -12,6 +12,7 @@ import com.konka.kksdtr069.util.LogUtils;
 import net.sunniwell.cwmp.protocol.sdk.aidl.AppID;
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPDownloadRequest;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,8 +41,14 @@ public class SystemHandlerImpl implements SystemHandler {
     public void appUninstall(List<AppID> list) {
         List<AppID> resultList = new ArrayList<AppID>();
         for (AppID app : list) {
-            int result = LinuxUtils.execCommand("pm", "uninstall", app.packageName);
-            resultList.add(new AppID(app.packageName, result));
+            try {
+                int result = LinuxUtils.execCommand("pm", "uninstall", app.packageName);
+                resultList.add(new AppID(app.packageName, result));
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
         protocolObserver.uninstallFinish(resultList);
     }

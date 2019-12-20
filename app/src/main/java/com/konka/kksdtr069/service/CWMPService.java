@@ -82,8 +82,8 @@ public class CWMPService extends ICWMPNativeService.Stub {
     }
 
     /**
-     * 设置参数方式完成特殊功能，ping诊断、trace route诊断、远程抓包、终端测速、
-     * 抓取上传日志、开关wifi、修改电视二维码显示
+     * 设置参数方式完成特殊功能，ping诊断、trace route诊断、远程抓包、
+     * 抓取上传日志、开关wifi
      *
      * @param list 请求实现功能，需要传入的设置参数列表
      * @return 功能完成后，返回参数
@@ -91,13 +91,11 @@ public class CWMPService extends ICWMPNativeService.Stub {
     @Override
     public List<SetParameterValuesFault> setParameters(List<CWMPParameter> list) throws RemoteException {
         ArrayList<SetParameterValuesFault> faultList = new ArrayList<SetParameterValuesFault>();
-        faultList.addAll(functionHandler.pingDiagnosis(list));
-        faultList.addAll(functionHandler.traceRouteDiagnosis(list));
-        faultList.addAll(functionHandler.remoteNetPacketCapture(list)); // 未实现
-        faultList.addAll(functionHandler.terminalSpeedMeasurement(list)); // 未实现
-        faultList.addAll(functionHandler.captureAndUploadLog(list)); // 未实现
-        faultList.addAll(functionHandler.wifiEnable(list)); // 未实现
-        faultList.addAll(functionHandler.modifyQRCodeDisplay(list)); // 未实现
+        functionHandler.pingDiagnosis(list);
+        functionHandler.traceRouteDiagnosis(list);
+        functionHandler.remoteNetPacketCapture(list);
+        functionHandler.captureAndUploadLog(list);
+        faultList.addAll(functionHandler.wifiEnable(list));
         return faultList;
     }
 

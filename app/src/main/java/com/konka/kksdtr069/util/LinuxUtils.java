@@ -9,13 +9,16 @@ import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPTraceRouteResult;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -98,8 +101,7 @@ public class LinuxUtils {
         list = exeCommand("/data/data/com.konka.kksdtr069/files/traceroute" +
                 " -m " + request.getMaxHopCount() +
                 " -w " + request.getTimeout() +
-                dscp +
-                " " + request.getHost() + " " + request.getDataBlockSize());
+                dscp + " " + request.getHost() + " " + request.getDataBlockSize());
         if (list.size() > 0)
             list.remove(0);
         for (String line : list) {
@@ -221,7 +223,7 @@ public class LinuxUtils {
      * @param command
      * @return
      */
-    public static int execCommand(String... command) {
+    public static int execCommand(String... command) throws IOException, InterruptedException {
         Process process = null;
         InputStream errIs = null;
         InputStream inIs = null;
@@ -261,5 +263,36 @@ public class LinuxUtils {
         }
         return status;
     }
+
+
+    public static void removeSubFile(String dirPath) {
+        File dir = new File(dirPath);
+        if ((!dir.exists()) || (!dir.isDirectory())) {
+            dir.mkdirs();
+            try {
+                execCommand("chmod", "755", dirPath);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        } else {
+            File[] files = dir.listFiles();
+            for (File f : files) {
+                if (f.isFile()) {
+                    f.delete();
+                }
+            }
+        }
+    }
+
+    public static String getPacketCaptureName() {
+        SimpleDateFormat sdformat = new SimpleDateFormat("yyyyMMddHHmmss");
+        String date = sdformat.format(new Date());
+        String fileName = PropertyUtils.getProperty("ro.mac")
+                .replace(":", "") + "_" + date + ".pcap";
+        return fileName;
+    }
+
 
 }

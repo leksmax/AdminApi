@@ -305,7 +305,8 @@ public class DBHelper extends SQLiteOpenHelper {
             {"Device.UserInterface.Logo.X_CT-COM_AuthenticatePic_Result", "", "unsignedInt", "0", "0", "0"},
     };
 
-    private static String sql = "INSERT INTO datamodel(name,value,type,writable,secure,notification) VALUES ('%s'," +
+    private static String sql = "INSERT INTO datamodel(name,value,type,writable,secure," +
+            "notification) VALUES ('%s'," +
             "'%s','%s','%s','%s','%s');";
 
     public DBHelper(Context context) {

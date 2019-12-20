@@ -98,12 +98,9 @@ public class SFTPUtils {
         try {
             createDir(remotePath);
             Log.d(TAG, "creatDir:" + remotePath);
-//            System.out.println(remotePath);
             File file = new File(localPath + localFileName);
             in = new FileInputStream(file);
-//            System.out.println(in);
             sftp.put(in, remoteFileName);
-//            System.out.println(sftp);
             return true;
         } catch ( FileNotFoundException e ) {
             e.printStackTrace();

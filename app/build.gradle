@@ -20,15 +20,22 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation "androidx.appcompat:appcompat:$rootProject.supportVersion"
+    implementation 'com.android.support:appcompat-v7:25.2.1'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
     implementation files('libs/SWTR060_SDK_2019.03.26.01.jar')
     implementation files('libs/jsch-0.1.54.jar')
     implementation files('libs/sw-migu-middleware-20181023.jar')
+
     // rxjava
     implementation "io.reactivex.rxjava2:rxjava:$rootProject.rxJavaVersion"
     implementation "io.reactivex.rxjava2:rxandroid:$rootProject.rxAndroidVersion"
-    implementation files('libs/javalib.jar')
+
+    // okhttp
+    implementation("com.squareup.okhttp3:okhttp:4.2.2")
+    // gson
+    implementation 'com.google.code.gson:gson:2.8.6'
+
+    implementation files('libs/kkbasiclib.jar')
 }

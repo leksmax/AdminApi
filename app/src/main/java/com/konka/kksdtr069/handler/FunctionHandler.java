@@ -9,17 +9,17 @@ import java.util.List;
 
 public interface FunctionHandler {
 
-    List<SetParameterValuesFault> pingDiagnosis(List<CWMPParameter> list) throws RemoteException;
+    void pingDiagnosis(List<CWMPParameter> list) throws RemoteException;
 
-    List<SetParameterValuesFault> traceRouteDiagnosis(List<CWMPParameter> list) throws RemoteException;
+    void traceRouteDiagnosis(List<CWMPParameter> list) throws RemoteException;
 
-    List<SetParameterValuesFault> terminalSpeedMeasurement(List<CWMPParameter> list) throws RemoteException;
+    void terminalSpeedMeasurement(List<CWMPParameter> list) throws RemoteException;
 
-    List<SetParameterValuesFault> remoteNetPacketCapture(List<CWMPParameter> list) throws RemoteException;
+    void remoteNetPacketCapture(List<CWMPParameter> list) throws RemoteException;
 
-    List<SetParameterValuesFault> captureAndUploadLog(List<CWMPParameter> list) throws RemoteException;
+    void captureAndUploadLog(List<CWMPParameter> list) throws RemoteException;
 
     List<SetParameterValuesFault> wifiEnable(List<CWMPParameter> list) throws RemoteException;
 
-    List<SetParameterValuesFault> modifyQRCodeDisplay(List<CWMPParameter> list) throws RemoteException;
+    void modifyQRCodeDisplay(List<CWMPParameter> list) throws RemoteException;
 }

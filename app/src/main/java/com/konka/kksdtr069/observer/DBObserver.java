@@ -16,7 +16,8 @@ public class DBObserver extends ContentObserver {
 
     private Context context;
 
-    private static final Uri OBSERVER_URI = Uri.withAppendedPath(DBHandlerImpl.URI, "2");
+    private static final Uri OBSERVER_URI = Uri.withAppendedPath(DBHandlerImpl.URI,
+            "notification");
 
     private List<CWMPParameter> parameterCacheList;
 
