@@ -7,6 +7,7 @@ import android.os.Handler;
 
 import com.konka.kksdtr069.base.BaseApplication;
 import com.konka.kksdtr069.handler.impl.DBHandlerImpl;
+import com.konka.kksdtr069.util.LogUtils;
 
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPParameter;
 
@@ -15,6 +16,8 @@ import java.util.List;
 public class DBObserver extends ContentObserver {
 
     private Context context;
+
+    public static final String TAG = DBObserver.class.getSimpleName();
 
     private static final Uri OBSERVER_URI = Uri.withAppendedPath(DBHandlerImpl.URI,
             "notification");
@@ -37,19 +40,18 @@ public class DBObserver extends ContentObserver {
         return instance;
     }
 
-    public void notifyChange(ContentObserver dbObserver,
-                             List<CWMPParameter> parameterCacheList) {
+    public void notifyChange(List<CWMPParameter> parameterCacheList) {
         this.parameterCacheList = parameterCacheList;
-        context.getContentResolver().notifyChange(OBSERVER_URI, dbObserver);
+        context.getContentResolver().notifyChange(OBSERVER_URI, this);
     }
 
-    public void registerDBObserver(ContentObserver dbObserver) {
+    public void registerDBObserver() {
         context.getContentResolver().registerContentObserver(OBSERVER_URI,
-                false, dbObserver);
+                false, this);
     }
 
-    public void unRegisterDBObserver(ContentObserver dbObserver) {
-        context.getContentResolver().unregisterContentObserver(dbObserver);
+    public void unRegisterDBObserver() {
+        context.getContentResolver().unregisterContentObserver(this);
     }
 
     @Override

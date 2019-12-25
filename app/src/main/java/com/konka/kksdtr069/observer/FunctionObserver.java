@@ -336,7 +336,7 @@ public class FunctionObserver extends BaseObserver {
                                         dbHandler.update(parameter);
                                     }
                                 }
-                                dbObserver.notifyChange(dbObserver, parameterCacheList);
+                                dbObserver.notifyChange(parameterCacheList);
                                 SetParameterValuesFault fault = new SetParameterValuesFault();
                                 fault.setFaultCode(9002);
                                 fault.setFaultString("Closing wifi failure，wifi is using.");

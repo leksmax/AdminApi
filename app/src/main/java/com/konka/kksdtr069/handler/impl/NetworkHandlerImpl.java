@@ -29,8 +29,6 @@ public class NetworkHandlerImpl implements NetworkHandler {
 
     private DBHandlerImpl dbHandler = DBHandlerImpl.getInstance();
 
-    private ProtocolObserver mProtocolPresenter = ProtocolObserver.getInstance();
-
     private DBObserver dbObserver = DBObserver.getInstance();
 
     private static final String ETHERNET_CONN_MODE_DHCP = "DHCP";
@@ -59,7 +57,8 @@ public class NetworkHandlerImpl implements NetworkHandler {
     }
 
     @Override
-    public void updateNetwork(List<CWMPParameter> parameterCacheList) throws RemoteException {
+    public void updateNetwork(List<CWMPParameter> parameterCacheList,
+                              ProtocolObserver protocolObserver) throws RemoteException {
         LogUtils.i(TAG, "updateNet");
         String netMode;// 网络类型
         String ipAddress;// 当前IP地址
@@ -109,13 +108,13 @@ public class NetworkHandlerImpl implements NetworkHandler {
             CWMPParameter netParameter = dbHandler.queryByName("Device.LAN.IPAddress");
             parameterCacheList.add(netParameter);
             // 上报新旧IP
-            mProtocolPresenter.networkChanged(ipAddress, oldIpAddress);
+            protocolObserver.networkChanged(ipAddress, oldIpAddress);
             LogUtils.i(TAG, "updateNet: onNetworkChanged");
         }
 
         if (!parameterCacheList.isEmpty()) {
             // 如果参数上报缓存不为空，向平台上报
-            dbObserver.notifyChange(dbObserver, parameterCacheList);
+            dbObserver.notifyChange(parameterCacheList);
             LogUtils.i(TAG, "updateNet: report parameters in parameterCacheList.");
             parameterCacheList.clear();
         }

@@ -10,6 +10,7 @@ import android.os.RemoteException;
 import com.konka.kksdtr069.base.BaseApplication;
 import com.konka.kksdtr069.base.BaseObserver;
 import com.konka.kksdtr069.handler.impl.NetworkHandlerImpl;
+import com.konka.kksdtr069.observer.ProtocolObserver;
 
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPParameter;
 
@@ -60,7 +61,8 @@ public class NetObserver extends BaseObserver {
             try {
                 // 当网络发生变化时，更新网络类型和IP地址
                 ArrayList<CWMPParameter> parameterCacheList = new ArrayList<CWMPParameter>();
-                mNetworkHandler.updateNetwork(parameterCacheList);
+                ProtocolObserver protocolObserver = ProtocolObserver.getInstance();
+                mNetworkHandler.updateNetwork(parameterCacheList, protocolObserver);
             } catch (RemoteException e) {
                 e.printStackTrace();
             }

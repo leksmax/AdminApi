@@ -36,7 +36,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
             {"Device.DeviceInfo.ProcessStatus.CPUUsage", "", "unsignedInt[:100]", "0", "0", "0"},
 
-            {"Device.ManagementServer.URL", "http://223.99.141.145:10086/ACS-server/ACS", "string(256)", "1", "0", "2"},
+            {"Device.ManagementServer.URL", "http://101.96.131.47:10086/ACS-server/acs", "string(256)", "1", "0", "2"},
             {"Device.ManagementServer.URLBackup", "", "string(256)", "1", "0", "2"},
             {"Device.ManagementServer.URLModifyFlag", "", "int", "1", "0", "0"},
             {"Device.ManagementServer.Username", "cpe", "string(256)", "1", "0", "0"},

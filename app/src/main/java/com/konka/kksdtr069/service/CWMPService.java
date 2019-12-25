@@ -159,7 +159,8 @@ public class CWMPService extends ICWMPNativeService.Stub {
     }
 
     @Override
-    public List<SetParameterValuesFault> setParameterAttributes(List<CWMPSetParameterAttributesStruct> list) throws RemoteException {
+    public List<SetParameterValuesFault> setParameterAttributes(List<CWMPSetParameterAttributesStruct> list)
+            throws RemoteException {
         return null;
     }
 }

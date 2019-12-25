@@ -118,12 +118,16 @@ public class DBHandlerImpl implements DBHandler {
     }
 
     private CWMPParameter cursorToCWMPParameter(Cursor cursor) throws RemoteException {
-        return new CWMPParameter(cursor.getString(cursor.getColumnIndex(COLUMN_NAME)),
-                cursor.getString(cursor.getColumnIndex(COLUMN_VALUE)),
-                cursor.getString(cursor.getColumnIndex(COLUMN_TYPE)),
-                cursor.getInt(cursor.getColumnIndex(COLUMN_WRITABLE)) == 1,
-                cursor.getInt(cursor.getColumnIndex(COLUMN_SECURE)) == 1,
-                cursor.getInt(cursor.getColumnIndex(COLUMN_NOTIFICATION)));
+        CWMPParameter parameter = null;
+        if (cursor.moveToFirst()) {
+            parameter = new CWMPParameter(cursor.getString(cursor.getColumnIndex(COLUMN_NAME)),
+                    cursor.getString(cursor.getColumnIndex(COLUMN_VALUE)),
+                    cursor.getString(cursor.getColumnIndex(COLUMN_TYPE)),
+                    cursor.getInt(cursor.getColumnIndex(COLUMN_WRITABLE)) == 1,
+                    cursor.getInt(cursor.getColumnIndex(COLUMN_SECURE)) == 1,
+                    cursor.getInt(cursor.getColumnIndex(COLUMN_NOTIFICATION)));
+        }
+        return parameter;
     }
 
     private List<CWMPParameter> cursorToList(Cursor cursor) throws RemoteException {
