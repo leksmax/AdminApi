@@ -46,12 +46,12 @@ public class NetMeasureUtils {
     private static final String FENGHUO_URL = "http://111.48.20.10/speedtest/speedtest.ts";
     private static final String FILE_PATH = "/data/SpeedTest.zip";
 
-    private final int MSG_NET_ERROR = 0;
-    private final int MSG_START_TEST = 1;
-    private final int MSG_SHOW_SPEED = 2;
-    private final int MSG_SHOW_SPEED2 = 3;
-    private final int MSG_REPORT_RESULT = 4;
-    private final int MSG_MEASURE = 5;
+    private static final int MSG_NET_ERROR = 0;
+    private static final int MSG_START_TEST = 1;
+    private static final int MSG_SHOW_SPEED = 2;
+    private static final int MSG_SHOW_SPEED2 = 3;
+    private static final int MSG_REPORT_RESULT = 4;
+    private static final int MSG_MEASURE = 5;
 
     private Timer timer;
     private Handler handler;
@@ -92,7 +92,7 @@ public class NetMeasureUtils {
 
     private SpeedTestCompletedListener listener;
 
-    private Context context = BaseApplication.instance.getApplicationContext();
+    private Context context;
 
     private String type = "1";
     private String account = "";
@@ -124,6 +124,7 @@ public class NetMeasureUtils {
     }
 
     private NetMeasureUtils() {
+        context = BaseApplication.instance.getApplicationContext();
         Looper.prepare();
         handler = new Handler(Looper.myLooper()) {
             @Override
@@ -371,8 +372,7 @@ public class NetMeasureUtils {
         });
     }
 
-    public void speedTest(Context context) {
-        this.context = context;
+    public void speedTest() {
         Intent intent = new Intent("com.certus.ottstb.bestv.StbParmService");
         context.bindService(intent, conn, Context.BIND_AUTO_CREATE);
     }

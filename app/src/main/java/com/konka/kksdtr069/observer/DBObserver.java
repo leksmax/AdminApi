@@ -26,11 +26,12 @@ public class DBObserver extends ContentObserver {
 
     private static DBObserver instance;
 
-    private ProtocolObserver protocolPresenter = ProtocolObserver.getInstance();
+    private ProtocolObserver protocolObserver;
 
     private DBObserver(Handler handler) {
         super(handler);
         this.context = BaseApplication.instance.getApplicationContext();
+        protocolObserver = ProtocolObserver.getInstance();
     }
 
     public static DBObserver getInstance() {
@@ -57,6 +58,6 @@ public class DBObserver extends ContentObserver {
     @Override
     public void onChange(boolean selfChange) {
         super.onChange(selfChange);
-        protocolPresenter.valueChanged(parameterCacheList);
+        protocolObserver.valueChanged(parameterCacheList);
     }
 }

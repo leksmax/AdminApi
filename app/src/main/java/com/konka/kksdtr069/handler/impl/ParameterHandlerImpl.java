@@ -4,6 +4,7 @@ import android.net.Uri;
 import android.os.RemoteException;
 
 import com.konka.kksdtr069.handler.ParameterHandler;
+import com.konka.kksdtr069.util.LogUtils;
 
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPParameter;
 
@@ -15,11 +16,22 @@ public class ParameterHandlerImpl implements ParameterHandler {
 
     public static final Uri URI = DBHandlerImpl.URI;
 
-    private static DBHandlerImpl dbHandler = DBHandlerImpl.getInstance();
+    private static DBHandlerImpl dbHandler;
+
+    public static final String TAG = ParameterHandlerImpl.class.getSimpleName();
+
+    private ParameterHandlerImpl() {
+        dbHandler = DBHandlerImpl.getInstance();
+        LogUtils.d(TAG, "new DBhandlerImpl for ParameterHandlerImpl");
+    }
 
     public static ParameterHandlerImpl getInstance() {
         if (instance == null) {
-            instance = new ParameterHandlerImpl();
+            synchronized (ParameterHandlerImpl.class) {
+                if (instance == null) {
+                    instance = new ParameterHandlerImpl();
+                }
+            }
         }
         return instance;
     }
@@ -31,11 +43,7 @@ public class ParameterHandlerImpl implements ParameterHandler {
 
     @Override
     public List<CWMPParameter> getInformParameters() throws RemoteException {
-        String[] names = new String[]{
-                "Device.DeviceInfo", "Device.ManagementServer", "Device.Time",
-                "Device.LAN", "Device.X_CMCC_OTV.STBInfo", "Device.X_CMCC_OTV.ServiceInfo",
-                "Device.X_00E0FC.SoftwareVersionList"};
-        return dbHandler.fuzzyQueryByNames(names);
+        return dbHandler.queryInformParameters();
     }
 
     @Override

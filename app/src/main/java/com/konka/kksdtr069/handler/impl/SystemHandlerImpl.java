@@ -18,7 +18,7 @@ import java.util.List;
 
 public class SystemHandlerImpl implements SystemHandler {
 
-    private ProtocolObserver protocolObserver = ProtocolObserver.getInstance();
+    private ProtocolObserver protocolObserver;
 
     private Context context;
 
@@ -28,6 +28,7 @@ public class SystemHandlerImpl implements SystemHandler {
 
     private SystemHandlerImpl() {
         context = BaseApplication.instance.getApplicationContext();
+        protocolObserver = ProtocolObserver.getInstance();
     }
 
     public static SystemHandlerImpl getInstance() {

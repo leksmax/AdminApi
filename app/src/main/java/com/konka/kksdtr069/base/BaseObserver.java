@@ -13,6 +13,7 @@ public class BaseObserver implements LifecycleObserver {
     private CompositeDisposable mDisposable = new CompositeDisposable();
 
     protected void addObserver(@NonNull Disposable disposable) {
+
         mDisposable.add(disposable);
     }
 
@@ -22,6 +23,7 @@ public class BaseObserver implements LifecycleObserver {
 
     @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     protected void release() {
+
         mDisposable.clear();
     }
 

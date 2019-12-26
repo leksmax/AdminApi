@@ -57,19 +57,28 @@ public class FunctionObserver extends BaseObserver {
 
     private Disposable mWifiDisposable;
 
-    private ParameterHandlerImpl parameterHandler = ParameterHandlerImpl.getInstance();
+    private ParameterHandlerImpl parameterHandler;
 
-    private DBHandlerImpl dbHandler = DBHandlerImpl.getInstance();
+    private DBHandlerImpl dbHandler;
 
-    private DBObserver dbObserver = DBObserver.getInstance();
+    private DBObserver dbObserver;
 
-    private Context context = BaseApplication.instance.getApplicationContext();
+    private Context context;
 
     private int tcpdumpState = 1;
 
-    private ProtocolObserver mprotocolObserver = ProtocolObserver.getInstance();
+    private ProtocolObserver mprotocolObserver;
 
     public static final String TAG = FunctionObserver.class.getSimpleName();
+
+    private FunctionObserver() {
+        parameterHandler = ParameterHandlerImpl.getInstance();
+        dbHandler = DBHandlerImpl.getInstance();
+        LogUtils.d(TAG, "new DBHandlerImpl for FunctionObserverF");
+        dbObserver = DBObserver.getInstance();
+        context = BaseApplication.instance.getApplicationContext();
+        mprotocolObserver = ProtocolObserver.getInstance();
+    }
 
     public static FunctionObserver getInstance() {
         if (instance == null) {
@@ -273,7 +282,7 @@ public class FunctionObserver extends BaseObserver {
             @Override
             public void subscribe(ObservableEmitter<NetMeasureUtils> emitter) throws Exception {
                 NetMeasureUtils netMeasureUtils = NetMeasureUtils.getInstance();
-                netMeasureUtils.speedTest(context);
+                netMeasureUtils.speedTest();
                 emitter.onNext(netMeasureUtils);
                 emitter.onComplete();
             }

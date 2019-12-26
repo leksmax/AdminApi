@@ -5,16 +5,21 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.RemoteException;
+import android.util.Log;
 
 import com.konka.kksdtr069.base.BaseApplication;
+import com.konka.kksdtr069.constant.ParameterConstant;
 import com.konka.kksdtr069.handler.DBHandler;
 
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPParameter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class DBHandlerImpl implements DBHandler {
+
+    public static final String TAG = DBHandlerImpl.class.getSimpleName();
 
     public static final String URI_AUTH = "content://tr069/datamodel";
 
@@ -42,7 +47,11 @@ public class DBHandlerImpl implements DBHandler {
 
     public static DBHandlerImpl getInstance() {
         if (instance == null) {
-            instance = new DBHandlerImpl();
+            synchronized (DBHandlerImpl.class) {
+                if (instance == null) {
+                    instance = new DBHandlerImpl();
+                }
+            }
         }
         return instance;
     }
@@ -68,8 +77,8 @@ public class DBHandlerImpl implements DBHandler {
 
     @Override
     public CWMPParameter queryByName(String name) throws RemoteException {
-        Cursor cursor = context.getContentResolver().query(Uri.withAppendedPath(URI,
-                name), null, "name=?", new String[]{name}, null);
+        Cursor cursor = context.getContentResolver().query(Uri.withAppendedPath(URI, name),
+                null, "name=?", new String[]{name}, null);
         CWMPParameter parameter = cursorToCWMPParameter(cursor);
         cursor.close();
         return parameter;
@@ -98,40 +107,44 @@ public class DBHandlerImpl implements DBHandler {
     }
 
     @Override
-    public List<CWMPParameter> fuzzyQueryByNames(String[] names) throws RemoteException {
-        StringBuilder selection = new StringBuilder();
-        selection.append("name REGEXP ");
-        for (int i = 0; i < names.length; i++) {
-            if (i == 0) {
-                selection.append("' " + names[i] + " |");
-            } else if (i == names.length - 1) {
-                selection.append(" " + names[i] + " '");
-            } else {
-                selection.append(" " + names[i] + " |");
+    public List<CWMPParameter> queryInformParameters() throws RemoteException {
+        Cursor cursor = context.getContentResolver().query(URI.withAppendedPath(URI, ""),
+                null, null, null, null);
+        List<CWMPParameter> list = new ArrayList<>();
+        CWMPParameter parameter = null;
+        while (cursor.moveToNext()) {
+            if (Arrays.asList(ParameterConstant.InformParameters)
+                    .contains(cursor.getString(cursor.getColumnIndex(COLUMN_NAME)))) {
+                parameter = new CWMPParameter(cursor.getString(cursor.getColumnIndex(COLUMN_NAME)),
+                        cursor.getString(cursor.getColumnIndex(COLUMN_VALUE)),
+                        cursor.getString(cursor.getColumnIndex(COLUMN_TYPE)),
+                        cursor.getInt(cursor.getColumnIndex(COLUMN_WRITABLE)) == 1 ? true : false,
+                        cursor.getInt(cursor.getColumnIndex(COLUMN_SECURE)) == 1 ? true : false,
+                        cursor.getInt(cursor.getColumnIndex(COLUMN_NOTIFICATION)));
+                list.add(parameter);
             }
         }
-        Cursor query = context.getContentResolver().query(URI, null, selection.toString()
-                , null, null);
-        List<CWMPParameter> cwmpParameters = cursorToList(query);
-        query.close();
-        return cwmpParameters;
+        cursor.close();
+        return list;
     }
 
     private CWMPParameter cursorToCWMPParameter(Cursor cursor) throws RemoteException {
-        CWMPParameter parameter = null;
         if (cursor.moveToFirst()) {
-            parameter = new CWMPParameter(cursor.getString(cursor.getColumnIndex(COLUMN_NAME)),
+            CWMPParameter parameter = new CWMPParameter(
+                    cursor.getString(cursor.getColumnIndex(COLUMN_NAME)),
                     cursor.getString(cursor.getColumnIndex(COLUMN_VALUE)),
                     cursor.getString(cursor.getColumnIndex(COLUMN_TYPE)),
                     cursor.getInt(cursor.getColumnIndex(COLUMN_WRITABLE)) == 1,
                     cursor.getInt(cursor.getColumnIndex(COLUMN_SECURE)) == 1,
                     cursor.getInt(cursor.getColumnIndex(COLUMN_NOTIFICATION)));
+            return parameter;
+        } else {
+            return null;
         }
-        return parameter;
     }
 
     private List<CWMPParameter> cursorToList(Cursor cursor) throws RemoteException {
-        ArrayList<CWMPParameter> list = new ArrayList<CWMPParameter>();
+        ArrayList<CWMPParameter> list = new ArrayList<>();
         CWMPParameter parameter = null;
         while (cursor.moveToNext()) {
             parameter = cursorToCWMPParameter(cursor);

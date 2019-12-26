@@ -11,7 +11,8 @@ public class LogUtils {
     private static final int ERROR = 5;
     public static final int NOTHING = 6;
 
-    private static final int LEVEL = Integer.parseInt(PropertyUtils.getProperty("persist.konka.debug", VERBOSE + ""));
+    private static final int LEVEL = Integer.parseInt(
+            PropertyUtils.getProperty("persist.konka.debug", VERBOSE + ""));
 
     public static void v(String tag, String msg) {
         if (LEVEL <= VERBOSE) {

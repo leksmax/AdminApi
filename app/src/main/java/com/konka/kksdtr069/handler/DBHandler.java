@@ -25,7 +25,7 @@ public interface DBHandler {
 
     List<CWMPParameter> fuzzyQueryByName(String path) throws RemoteException;
 
-    List<CWMPParameter> fuzzyQueryByNames(String[] names) throws RemoteException;
+    List<CWMPParameter> queryInformParameters() throws RemoteException;
 
     boolean isDifferentFromDB(String targetValue, String queryStr) throws RemoteException;
 }

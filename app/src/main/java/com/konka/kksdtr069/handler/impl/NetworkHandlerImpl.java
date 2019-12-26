@@ -27,9 +27,9 @@ public class NetworkHandlerImpl implements NetworkHandler {
 
     private Context context;
 
-    private DBHandlerImpl dbHandler = DBHandlerImpl.getInstance();
+    private DBHandlerImpl dbHandler;
 
-    private DBObserver dbObserver = DBObserver.getInstance();
+    private DBObserver dbObserver;
 
     private static final String ETHERNET_CONN_MODE_DHCP = "DHCP";
 
@@ -47,6 +47,9 @@ public class NetworkHandlerImpl implements NetworkHandler {
 
     private NetworkHandlerImpl() {
         this.context = BaseApplication.instance.getApplicationContext();
+        this.dbHandler = DBHandlerImpl.getInstance();
+        LogUtils.d(TAG,"new DBhandlerImpl for NetworkHandlerImpl");
+        this.dbObserver = DBObserver.getInstance();
     }
 
     public static NetworkHandlerImpl getInstance() {

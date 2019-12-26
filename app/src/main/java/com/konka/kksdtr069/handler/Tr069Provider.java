@@ -20,7 +20,7 @@ public class Tr069Provider extends ContentProvider {
     private static final String SELECTION = "name=?";
     private static final int SINGLE_ROW = 101;
     private static final int ALL_ROW = 102;
-    private static final String TAG = "TR069_DB";
+    private static final String TAG = Tr069Provider.class.getSimpleName();
 
     private static UriMatcher sUriMatcher;
     private SQLiteDatabase db;

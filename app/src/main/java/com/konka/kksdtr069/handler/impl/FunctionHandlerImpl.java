@@ -12,10 +12,10 @@ import com.konka.kksdtr069.base.BaseApplication;
 import com.konka.kksdtr069.handler.FunctionHandler;
 import com.konka.kksdtr069.model.PacketCaptureRequest;
 import com.konka.kksdtr069.model.SysLog;
-import com.konka.kksdtr069.observer.DBObserver;
 import com.konka.kksdtr069.observer.FunctionObserver;
 import com.konka.kksdtr069.observer.ProtocolObserver;
 import com.konka.kksdtr069.util.LinuxUtils;
+import com.konka.kksdtr069.util.LogUtils;
 import com.konka.kksdtr069.util.UploadLogUtils;
 
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPParameter;
@@ -36,16 +36,18 @@ public class FunctionHandlerImpl implements FunctionHandler {
 
     private Context context;
 
-    private DBHandlerImpl dbHandler = DBHandlerImpl.getInstance();
+    private DBHandlerImpl dbHandler;
 
-    private FunctionObserver functionObserver = FunctionObserver.getInstance();
+    private FunctionObserver functionObserver;
 
-    private ProtocolObserver protocolObserver = ProtocolObserver.getInstance();
-
-    private DBObserver dbObserver = DBObserver.getInstance();
+    private ProtocolObserver protocolObserver;
 
     private FunctionHandlerImpl() {
         context = BaseApplication.instance.getApplicationContext();
+        dbHandler = DBHandlerImpl.getInstance();
+        LogUtils.d(TAG,"new DBHandlerImpl for FunctionHandlerImpl");
+        functionObserver = FunctionObserver.getInstance();
+        protocolObserver = ProtocolObserver.getInstance();
     }
 
     public static FunctionHandlerImpl getInstance() {
