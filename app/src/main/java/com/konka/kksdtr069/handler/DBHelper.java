@@ -1,30 +1,35 @@
 package com.konka.kksdtr069.handler;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import com.konka.kksdtr069.util.LogUtils;
+
 public class DBHelper extends SQLiteOpenHelper {
+
+    public static final String TAG = DBHelper.class.getSimpleName();
 
     private static final String DATABASE_NAME = "tr069.db";
     private static final int DATABASE_VERSION = 1;// 数据库版本，数据库需要更新时版本号加1
 
     private static final String contents[][] = {
-            {"Device.DeviceSummary", "", "string(1024)", "0", "0", "0"},
-
+            {"Device.DeviceSummary", "This product belongs to Shenzhen Konka information network company", "string(1024)", "0", "0", "0"},
+            {"Device.DeviceType", "STB", "string(64)", "0", "0", "0"},
             {"Device.DeviceInfo.Manufacturer", "MIGU", "string(64)", "0", "0", "0"},
             {"Device.DeviceInfo.OUI", "000003", "string(6)", "0", "0", "0"},
             {"Device.DeviceInfo.ManufacturerOUI", "000003", "string(6)", "0", "0", "0"},
-            {"Device.DeviceInfo.ModelName", "MGV2000-K_X", "string(64)", "0", "0", "0"},
+            {"Device.DeviceInfo.ModelName", "MG101-K_7", "string(64)", "0", "0", "0"},
             {"Device.DeviceInfo.ModelID", "", "string(64)", "0", "0", "0"},
-            {"Device.DeviceInfo.Description", "", "string(256)", "0", "0", "0"},
+            {"Device.DeviceInfo.Description", "p201_iptv-user 4.4.2 KOT49H 1.1.12 test-keys", "string(256)", "0", "0", "0"},
             {"Device.DeviceInfo.ProductClass", "", "string(64)", "0", "0", "0"},
             {"Device.DeviceInfo.SerialNumber", "", "string(64)", "0", "0", "0"},
-            {"Device.DeviceInfo.HardwareVersion", "", "string(64)", "0", "0", "0"},
+            {"Device.DeviceInfo.HardwareVersion", "1.0", "string(64)", "0", "0", "0"},
             {"Device.DeviceInfo.SoftwareVersion", "", "string(64)", "0", "0", "2"},
             {"Device.DeviceInfo.EnabledOptions", "", "string(1024)", "0", "0", "0"},
-            {"Device.DeviceInfo.AdditionalHardwareVersion", "", "string(64)", "0", "0", "0"},
-            {"Device.DeviceInfo.AdditionalSoftwareVersion", "", "string(64)", "0", "0", "0"},
+            {"Device.DeviceInfo.AdditionalHardwareVersion", "1.0", "string(64)", "0", "0", "0"},
+            {"Device.DeviceInfo.AdditionalSoftwareVersion", "Android release version 4.4.2", "string(64)", "0", "0", "0"},
             {"Device.DeviceInfo.ProvisioningCode", "", "string(64)", "1", "0", "2"},
             {"Device.DeviceInfo.DeviceStatus", "", "string(64)", "0", "0", "2"},
             {"Device.DeviceInfo.UpTime", "", "unsignedInt", "0", "0", "0"},
@@ -169,6 +174,9 @@ public class DBHelper extends SQLiteOpenHelper {
             {"Device.X_CMCC_OTV.STBInfo.StorageSize", "", "string(32)", "0", "0", "0"},
             {"Device.X_CMCC_OTV.STBInfo.AreaCode", "", "string(16)", "0", "0", "2"},
             {"Device.X_CMCC_OTV.STBInfo.Platform", "", "string(16)", "0", "0", "2"},
+            {"Device.X_CMCC_OTV.STBInfo.QRCodeMessage", "", "string(64)", "1", "0", "2"},
+            {"Device.X_CMCC_OTV.STBInfo.PPPoEID", "", "string(36)", "0", "0", "0"},
+            {"Device.X_CMCC_OTV.STBInfo.PPPoEPassword","","string(16)","0","0","0"},
 
             {"Device.X_CMCC_OTV.ServiceInfo.PPPoEID", "", "string(36)", "1", "0", "2"},
             {"Device.X_CMCC_OTV.ServiceInfo.PPPoEPassword", "", "string(16)", "1", "0", "0"},
@@ -185,19 +193,18 @@ public class DBHelper extends SQLiteOpenHelper {
 
             {"Device.X_CMCC_OTV.ServiceInfo.USBPermitInstalledAPP.NumofAPP", "", "Int(32)", "0", "0", "0"},
             {"Device.X_CMCC_OTV.ServiceInfo.AuthSucTime", "", "long", "0", "0", "2"},
-//            {"Device.X_CMCC_OTV.ServiceInfo.USBPermitInstalledAPP.UsbInstalledAppList.1.PackageName", "", "string",
-//                    "1", "0", "0"},
-//            {"Device.X_CMCC_OTV.ServiceInfo.USBPermitInstalledAPP.UsbInstalledAppList.1.ClassName", "", "string", "1"
-//                    , "0", "0"},
+            {"Device.X_CMCC_OTV.ServiceInfo.USBPermitInstalledAPP.UsbInstalledAppList.1.PackageName", "", "string",
+                    "1", "0", "0"},
+            {"Device.X_CMCC_OTV.ServiceInfo.USBPermitInstalledAPP.UsbInstalledAppList.1.ClassName", "", "string", "1"
+                    , "0", "0"},
 
             {"Device.X_CMCC_OTV.Extention.AppAutoRunBlackListFlag", "", "boolean", "1", "0", "0"},
             {"Device.X_CMCC_OTV.Extention.NumOfAppAutoRunBlackList", "", "Int(32)", "0", "0", "0"},
-//            {"Device.X_CMCC_OTV.Extention.AppAutoRunBlackList.1.PackageName", "", "string", "1", "0", "0"},
-//            {"Device.X_CMCC_OTV.Extention.AppAutoRunBlackList.1.ClassName", "", "string", "1", "0", "0"},
+            {"Device.X_CMCC_OTV.Extention.AppAutoRunBlackList.1.PackageName", "", "string", "1", "0", "0"},
+            {"Device.X_CMCC_OTV.Extention.AppAutoRunBlackList.1.ClassName", "", "string", "1", "0", "0"},
 
             {"Device.X_CMCC_OTV.BandwidthDiagnostics.DiagnosticsState", "", "string", "1", "0", "0"},
             {"Device.X_CMCC_OTV.ServiceInfo.WiFiEnable", "", "Int", "1", "0", "2"},
-            {"Device.X_CMCC_OTV.STBInfo.QRCodeMessage", "", "string(64)", "1", "0", "2"},
             {"Device.X_00E0FC.AlarmSwitch", "", "Boolean", "1", "0", "0"},
             {"Device.X_00E0FC.AlarmReportLevel", "", "Int", "1", "0", "0"},
             {"Device.X_00E0FC.CPUAlarmValue", "", "string(16)", "1", "0", "0"},
@@ -305,9 +312,8 @@ public class DBHelper extends SQLiteOpenHelper {
             {"Device.UserInterface.Logo.X_CT-COM_AuthenticatePic_Result", "", "unsignedInt", "0", "0", "0"},
     };
 
-    private static String sql = "INSERT INTO datamodel(name,value,type,writable,secure," +
-            "notification) VALUES ('%s'," +
-            "'%s','%s','%s','%s','%s');";
+    private static String sql = "INSERT INTO datamodel(name,value,type,writable,secure,notification) " +
+            "VALUES ('%s','%s','%s','%s','%s','%s');";
 
     public DBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);

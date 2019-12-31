@@ -39,16 +39,15 @@ public class CWMPService extends ICWMPNativeService.Stub {
      */
     @Override
     public List<CWMPParameter> getInformParameters() throws RemoteException {
-        LogUtils.d(TAG, "getInformParameters() result : ");
         List<CWMPParameter> list = parameterHandler.getInformParameters();
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i < list.size(); i++) {
             if (i == 0) {
-                stringBuilder.append("get inform parameters result : " + "\n");
-            } else {
-                stringBuilder.append("parameter name : " + list.get(i).getName() + "\n"
-                        + "parameter value :" + list.get(i).getValue() + "\n");
+                stringBuilder.append("getInformParameters() result : " + "\n");
             }
+            stringBuilder.append("name : " + list.get(i).getName() + "\n"
+                    + "value :" + list.get(i).getValue() + "\n");
+
         }
         LogUtils.d(TAG, stringBuilder.toString());
         return list;
@@ -59,15 +58,14 @@ public class CWMPService extends ICWMPNativeService.Stub {
      */
     @Override
     public List<CWMPParameter> getPeriodicParameters() throws RemoteException {
-        LogUtils.d(TAG, "getPeriodicParameters()");
         List<CWMPParameter> list = parameterHandler.getInformParameters();
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i < list.size(); i++) {
             if (i == 0) {
-                stringBuilder.append("get periodic parameters result : " + "\n");
+                stringBuilder.append("getPeriodicParameters() result : " + "\n");
             } else {
-                stringBuilder.append("parameter name : " + list.get(i).getName() + "\n"
-                        + "parameter value :" + list.get(i).getValue() + "\n");
+                stringBuilder.append("name : " + list.get(i).getName() + "\n"
+                        + "value :" + list.get(i).getValue() + "\n");
             }
         }
         LogUtils.d(TAG, stringBuilder.toString());
@@ -80,15 +78,14 @@ public class CWMPService extends ICWMPNativeService.Stub {
      */
     @Override
     public List<CWMPParameter> getParameters(String path) throws RemoteException {
-        LogUtils.d(TAG, "getParameters()");
         List<CWMPParameter> list = parameterHandler.getParameterBySuperName(path);
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i < list.size(); i++) {
             if (i == 0) {
-                stringBuilder.append("get parameters result : " + "\n");
+                stringBuilder.append("getParameters() result : " + "\n");
             } else {
-                stringBuilder.append("parameter name : " + list.get(i).getName() + "\n"
-                        + "parameter value :" + list.get(i).getValue() + "\n");
+                stringBuilder.append("name : " + list.get(i).getName() + "\n"
+                        + "value :" + list.get(i).getValue() + "\n");
             }
         }
         LogUtils.d(TAG, stringBuilder.toString());
@@ -102,9 +99,10 @@ public class CWMPService extends ICWMPNativeService.Stub {
      */
     @Override
     public String getParameterValue(String name) throws RemoteException {
-        LogUtils.d(TAG, "getParameterValue()");
         String value = parameterHandler.getParameterValue(name);
-        LogUtils.d(TAG, "get parameter value : " + value);
+        LogUtils.d(TAG, "getParameterValue() result : " + "\n"
+                + "name : " + name + "\n"
+                + "value : " + value + "\n");
         return value;
     }
 
@@ -115,9 +113,11 @@ public class CWMPService extends ICWMPNativeService.Stub {
      */
     @Override
     public int setParameterValue(String name, String value) throws RemoteException {
-        LogUtils.d(TAG, "setParameterValue()");
         int result = parameterHandler.setParameterValue(name, value);
-        LogUtils.d(TAG, "set parameter value result : " + result);
+        LogUtils.d(TAG, "setParameterValue() result : " + "\n"
+                + "name : " + name + "\n"
+                + "value : " + value + "\n"
+                + "set parameter result : " + result + "\n");
         return result;
     }
 
@@ -127,11 +127,10 @@ public class CWMPService extends ICWMPNativeService.Stub {
      */
     @Override
     public CWMPParameter getParameter(String name) throws RemoteException {
-        LogUtils.d(TAG, "getParameter()");
         CWMPParameter parameter = parameterHandler.getParameter(name);
-        LogUtils.d(TAG, "get parameter result : " + "\n"
-                + "parameter name : " + parameter.getName() + "\n"
-                + "parameter value : " + parameter.getValue() + "\n");
+        LogUtils.d(TAG, "getParameter() result : " + "\n"
+                + "name : " + parameter.getName() + "\n"
+                + "value : " + parameter.getValue() + "\n");
         return parameter;
     }
 
@@ -144,7 +143,6 @@ public class CWMPService extends ICWMPNativeService.Stub {
      */
     @Override
     public List<SetParameterValuesFault> setParameters(List<CWMPParameter> list) throws RemoteException {
-        LogUtils.d(TAG, "setParameters()");
         ArrayList<SetParameterValuesFault> faultList = new ArrayList<SetParameterValuesFault>();
         functionHandler.pingDiagnosis(list);
         functionHandler.traceRouteDiagnosis(list);

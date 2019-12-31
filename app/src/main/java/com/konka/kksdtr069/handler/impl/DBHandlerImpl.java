@@ -10,6 +10,7 @@ import android.util.Log;
 import com.konka.kksdtr069.base.BaseApplication;
 import com.konka.kksdtr069.constant.ParameterConstant;
 import com.konka.kksdtr069.handler.DBHandler;
+import com.konka.kksdtr069.util.LogUtils;
 
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPParameter;
 
@@ -108,13 +109,13 @@ public class DBHandlerImpl implements DBHandler {
 
     @Override
     public List<CWMPParameter> queryInformParameters() throws RemoteException {
-        Cursor cursor = context.getContentResolver().query(URI.withAppendedPath(URI, ""),
-                null, null, null, null);
+        Cursor cursor = context.getContentResolver().query(URI, null,
+                null, null, null);
         List<CWMPParameter> list = new ArrayList<>();
         CWMPParameter parameter = null;
         while (cursor.moveToNext()) {
-            if (Arrays.asList(ParameterConstant.InformParameters)
-                    .contains(cursor.getString(cursor.getColumnIndex(COLUMN_NAME)))) {
+            String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME));
+            if (Arrays.asList(ParameterConstant.InformParameters).contains(name)) {
                 parameter = new CWMPParameter(cursor.getString(cursor.getColumnIndex(COLUMN_NAME)),
                         cursor.getString(cursor.getColumnIndex(COLUMN_VALUE)),
                         cursor.getString(cursor.getColumnIndex(COLUMN_TYPE)),

@@ -18,6 +18,7 @@ import com.konka.kksdtr069.observer.DBObserver;
 import com.konka.kksdtr069.observer.ProtocolObserver;
 import com.konka.kksdtr069.receiver.NetObserver;
 import com.konka.kksdtr069.service.CWMPService;
+import com.konka.kksdtr069.util.LogUtils;
 
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPParameter;
 import net.sunniwell.cwmp.protocol.sdk.aidl.ICWMPProtocolService;
@@ -110,11 +111,11 @@ public class Tr069Client extends Service {
 
     public void initNativeService() throws RemoteException, InterruptedException {
         Thread.sleep(2 * 1000);
+        mProtocolObserver = new ProtocolObserver(mProtocolService);
         // 提供本地接口服务对象给朝歌中间件
         mProtocolService.setNativeService(new CWMPService());
         // 通知朝歌中间件启动完成
         mProtocolService.onBoot();
-        mProtocolObserver = new ProtocolObserver(mProtocolService);
         Log.d(TAG, "onServiceConnected() ProtocolService boot " +
                 "and init native service finished.");
     }

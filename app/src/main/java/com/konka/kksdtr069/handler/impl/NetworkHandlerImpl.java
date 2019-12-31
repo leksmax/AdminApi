@@ -18,6 +18,8 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 
@@ -48,7 +50,7 @@ public class NetworkHandlerImpl implements NetworkHandler {
     private NetworkHandlerImpl() {
         this.context = BaseApplication.instance.getApplicationContext();
         this.dbHandler = DBHandlerImpl.getInstance();
-        LogUtils.d(TAG,"new DBhandlerImpl for NetworkHandlerImpl");
+        LogUtils.d(TAG, "new DBhandlerImpl for NetworkHandlerImpl");
         this.dbObserver = DBObserver.getInstance();
     }
 
@@ -121,6 +123,8 @@ public class NetworkHandlerImpl implements NetworkHandler {
             LogUtils.i(TAG, "updateNet: report parameters in parameterCacheList.");
             parameterCacheList.clear();
         }
+        SimpleDateFormat format = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        dbHandler.update("Device.DeviceInfo.UpTime", format.format(new Date()));
     }
 
     /**

@@ -18,18 +18,10 @@ public class ParameterConstant {
             "Device.LAN.IPAddress",
             "Device.LAN.MACAddress",
             "Device.X_CMCC_OTV.STBInfo.STBID",
-            "Device.X_CMCC_OTV.STBInfo.AreaCode",
-            "Device.X_CMCC_OTV.STBInfo.Platform",
             "Device.X_CMCC_OTV.ServiceInfo.UserID",
             "Device.X_CMCC_OTV.ServiceInfo.PPPoEID",
             "Device.X_CMCC_OTV.ServiceInfo.AuthURL",
             "Device.X_00E0FC.SoftwareVersionList",
-            "Device.ManagementServer.UDPConnectionRequestAddress",
-            "Device.ManagementServer.STUNEnable",
-            "Device.ManagementServer.NATDetected",
-            "Device.ManagementServer.PeriodicInformEnable",
-            "Device.ManagementServer.PeriodicInformInterval",
-            "Device.ManagementServer.PeriodicInformTime"
     };
 
 }
