@@ -4,6 +4,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Parcel;
 import android.os.RemoteException;
 import android.util.Log;
 
@@ -130,18 +131,19 @@ public class DBHandlerImpl implements DBHandler {
     }
 
     private CWMPParameter cursorToCWMPParameter(Cursor cursor) throws RemoteException {
-        if (cursor.moveToFirst()) {
-            CWMPParameter parameter = new CWMPParameter(
+        CWMPParameter parameter = null;
+        if (cursor.moveToNext()) {
+            parameter = new CWMPParameter(
                     cursor.getString(cursor.getColumnIndex(COLUMN_NAME)),
                     cursor.getString(cursor.getColumnIndex(COLUMN_VALUE)),
                     cursor.getString(cursor.getColumnIndex(COLUMN_TYPE)),
                     cursor.getInt(cursor.getColumnIndex(COLUMN_WRITABLE)) == 1,
                     cursor.getInt(cursor.getColumnIndex(COLUMN_SECURE)) == 1,
                     cursor.getInt(cursor.getColumnIndex(COLUMN_NOTIFICATION)));
-            return parameter;
         } else {
-            return null;
+            parameter = new CWMPParameter();
         }
+        return parameter;
     }
 
     private List<CWMPParameter> cursorToList(Cursor cursor) throws RemoteException {

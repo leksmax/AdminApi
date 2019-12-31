@@ -9,7 +9,7 @@ import com.konka.kksdtr069.util.LogUtils;
 
 public class BootReceiver extends BroadcastReceiver {
 
-    private static final String TAG = "KONKA_BootReceiver";
+    private static final String TAG = "TR069BootReceiver";
 
     public BootReceiver() {
         super();
