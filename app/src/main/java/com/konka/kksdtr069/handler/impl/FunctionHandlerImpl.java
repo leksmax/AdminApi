@@ -16,11 +16,15 @@ import com.konka.kksdtr069.observer.FunctionObserver;
 import com.konka.kksdtr069.observer.ProtocolObserver;
 import com.konka.kksdtr069.util.LinuxUtils;
 import com.konka.kksdtr069.util.LogUtils;
+import com.konka.kksdtr069.util.NetMeasureUtils;
 import com.konka.kksdtr069.util.UploadLogUtils;
 
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPParameter;
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPPingRequest;
+import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPPingResult;
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPTraceRouteRequest;
+import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPTraceRouteResult;
+import net.sunniwell.cwmp.protocol.sdk.aidl.ICWMPProtocolService;
 import net.sunniwell.cwmp.protocol.sdk.aidl.SetParameterValuesFault;
 
 import java.text.ParseException;
@@ -30,7 +34,7 @@ import java.util.List;
 
 public class FunctionHandlerImpl implements FunctionHandler {
 
-    public static final String TAG = FunctionHandler.class.getSimpleName();
+    public static final String TAG = FunctionHandlerImpl.class.getSimpleName();
 
     private static FunctionHandlerImpl instance;
 
@@ -40,14 +44,11 @@ public class FunctionHandlerImpl implements FunctionHandler {
 
     private FunctionObserver functionObserver;
 
-    private ProtocolObserver protocolObserver;
-
     private FunctionHandlerImpl() {
         context = BaseApplication.instance.getApplicationContext();
         dbHandler = DBHandlerImpl.getInstance();
-        LogUtils.d(TAG,"new DBHandlerImpl for FunctionHandlerImpl");
+        LogUtils.d(TAG, "new DBHandlerImpl for FunctionHandlerImpl");
         functionObserver = FunctionObserver.getInstance();
-        protocolObserver = ProtocolObserver.getInstance();
     }
 
     public static FunctionHandlerImpl getInstance() {
@@ -58,7 +59,7 @@ public class FunctionHandlerImpl implements FunctionHandler {
     }
 
     @Override
-    public void pingDiagnosis(List<CWMPParameter> list) throws RemoteException {
+    public void pingDiagnosis(List<CWMPParameter> list, final ICWMPProtocolService protocolService) throws RemoteException {
         String pingState = "";
         String pingHost = "";
         String pingRepeat = "";
@@ -89,12 +90,12 @@ public class FunctionHandlerImpl implements FunctionHandler {
             final CWMPPingRequest request = initCWMPPingRequest(pingHost, pingState, pingRepeat,
                     pingTimeout, pingDBS, pingDSCP);
             functionObserver.observerPing(request);
+            protocolService.onDiagnosisFinish();
         }
-        protocolObserver.diagnosisFinish();
     }
 
     @Override
-    public void traceRouteDiagnosis(List<CWMPParameter> list) throws RemoteException {
+    public void traceRouteDiagnosis(List<CWMPParameter> list, final ICWMPProtocolService protocolService) throws RemoteException {
         String traceState = "";
         String traceHost = "";
         String traceMHC = "";
@@ -126,14 +127,70 @@ public class FunctionHandlerImpl implements FunctionHandler {
             LinuxUtils.varifyFile(context, "traceroute");
             final CWMPTraceRouteRequest request = initCWMPTraceRouteRequest(traceHost, traceState,
                     traceMHC, traceTimeout, traceDBS, traceDSCP);
-            functionObserver.observerTraceRoute(request);
+            new Thread() {
+                @Override
+                public void run() {
+                    LogUtils.d(TAG, "start trace route");
+                    CWMPTraceRouteResult traceResult = LinuxUtils.traceRoute(request);
+                    LogUtils.d(TAG, "trace route result : " + "\n"
+                            + "MaximumResponseTime = " + traceResult.getMaximumResponseTime() + "\n"
+                            + "MinimumResponseTime = " + traceResult.getMinimumResponseTime() + "\n"
+                            + "AverageResponseTime = " + traceResult.getAverageResponseTime() + "\n"
+                            + "FailureCount = " + traceResult.getFailureCount() + "\n"
+                            + "ResponseTime = " + traceResult.getResponseTime() + "\n"
+                            + "DiagnosticsState = " + traceResult.getDiagnosticsState() + "\n"
+                            + "NumberOfRouteHops = " + traceResult.getNumberOfRouteHops() + "\n");
+                    try {
+                        dbHandler.update(
+                                "Device.LAN.TraceRouteDiagnostics.MaximumResponseTime",
+                                traceResult.getMaximumResponseTime() + "");
+                        dbHandler.update(
+                                "Device.LAN.TraceRouteDiagnostics.MinimumResponseTime",
+                                traceResult.getMinimumResponseTime() + "");
+                        dbHandler.update(
+                                "Device.LAN.TraceRouteDiagnostics.AverageResponseTime",
+                                traceResult.getAverageResponseTime() + "");
+                        dbHandler.update(
+                                "Device.LAN.TraceRouteDiagnostics.FailureCount",
+                                traceResult.getFailureCount() + "");
+                        dbHandler.update(
+                                "Device.LAN.TraceRouteDiagnostics.ResponseTime",
+                                traceResult.getResponseTime() + "");
+                        dbHandler.update(
+                                "Device.LAN.TraceRouteDiagnostics.DiagnosticsState",
+                                traceResult.getDiagnosticsState());
+                        dbHandler.update(
+                                "Device.LAN.TraceRouteDiagnostics.NumberOfRouteHops",
+                                traceResult.getNumberOfRouteHops() + "");
+                        dbHandler.delete("TraceRouteDiagnostics.RouteHops");
+                        StringBuilder RouteHops = new StringBuilder();
+                        for (int i = 0; i < traceResult.getRouteHops().size(); i++) {
+                            RouteHops.append(traceResult.getRouteHops().get(i)).append("#");
+                        }
+                        ContentValues cv = new ContentValues();
+                        cv.put(DBHandlerImpl.COLUMN_NAME, "Device.LAN.TraceRouteDiagnostics.RouteHops.");
+                        String routeHops = RouteHops.toString();
+                        if (!routeHops.isEmpty()) {
+                            routeHops = routeHops.substring(0, routeHops.length() - 1);
+                        }
+                        cv.put(DBHandlerImpl.COLUMN_VALUE, routeHops);
+                        cv.put(DBHandlerImpl.COLUMN_TYPE, "string(256)");
+                        cv.put(DBHandlerImpl.COLUMN_WRITABLE, "0");
+                        cv.put(DBHandlerImpl.COLUMN_SECURE, "0");
+                        cv.put(DBHandlerImpl.COLUMN_NOTIFICATION, "0");
+                        dbHandler.insert(cv);
+                        protocolService.onDiagnosisFinish();
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }.start();
         }
-        protocolObserver.diagnosisFinish();
     }
 
-    /* 陕西RMS暂时无需实现终端测速的接口 */
+    /* 陕西RMS暂时无需终端测速的接口 */
     @Override
-    public void terminalSpeedMeasurement(List<CWMPParameter> list) throws RemoteException {
+    public void terminalSpeedMeasurement(List<CWMPParameter> list, final ICWMPProtocolService protocolService) throws RemoteException {
         String speedTest = "";
         for (CWMPParameter parameter : list) {
             dbHandler.update(parameter);
@@ -144,7 +201,21 @@ public class FunctionHandlerImpl implements FunctionHandler {
             }
         }
         if ("Requested".equals(speedTest)) {
-            functionObserver.speedMeasurement();
+            NetMeasureUtils netMeasureUtils = NetMeasureUtils.getInstance();
+            netMeasureUtils.speedTest();
+            netMeasureUtils.setSpeedTestCompletedListener(
+                    new NetMeasureUtils.SpeedTestCompletedListener() {
+                        @Override
+                        public void submitResult(boolean success) {
+                            Log.d(TAG, "Speed test: succeed");
+                            try {
+                                protocolService.onDiagnosisFinish();
+                            } catch (RemoteException e) {
+                                e.printStackTrace();
+                            }
+
+                        }
+                    });
         }
     }
 
@@ -188,7 +259,9 @@ public class FunctionHandlerImpl implements FunctionHandler {
         if ("2".equals(packetState)) {
             PacketCaptureRequest request = new PacketCaptureRequest(packetState, packetDuration,
                     packetIP, packetPort, packetUploadURL, packetUsername, packetPassword);
+            LogUtils.d(TAG, "remoteNetPacketCapture() start");
             functionObserver.observerCapturePackage(request);
+            LogUtils.d(TAG, "remoteNetPacketCapture() finish");
         }
     }
 
@@ -207,7 +280,7 @@ public class FunctionHandlerImpl implements FunctionHandler {
 
         for (CWMPParameter mCWMPParameter : list) {
             dbHandler.update(mCWMPParameter);
-            String name = mCWMPParameter.getValue();
+            String name = mCWMPParameter.getName();
 
             if (name.contains("Device.X_00E0FC.LogParaConfiguration.SyslogServer")
                     && syslogServer.equals("")) {
@@ -224,7 +297,6 @@ public class FunctionHandlerImpl implements FunctionHandler {
             } else if (name.contains("Device.X_00E0FC.LogParaConfiguration.SyslogStartTime")
                     && syslogStartTime.equals("")) {
                 syslogStartTime = mCWMPParameter.getValue();
-                Log.d(TAG, syslogStartTime);
             } else if (name.contains("Device.X_00E0FC.LogParaConfiguration.SyslogContinueTime")
                     && syslogContinueTime.equals("")) {
                 syslogContinueTime = mCWMPParameter.getValue();
@@ -236,6 +308,14 @@ public class FunctionHandlerImpl implements FunctionHandler {
                 syslogFTPServer = mCWMPParameter.getValue();
             }
         }
+        LogUtils.d(TAG, "sys log : " + "\n"
+                + "SysLogOutputType = " + syslogOutputType + "\n"
+                + "SysLogLevel = " + syslogLevel + "\n"
+                + "SysLogType = " + syslogType + "\n"
+                + "SysLogServer = " + syslogServer + "\n"
+                + "SysLogStartTime = " + syslogStartTime + "\n"
+                + "SysLogContinueTime = " + syslogContinueTime + "\n"
+                + "SysLogFTPServer = " + syslogFTPServer + "\n");
         UploadLogUtils uploadLogUtils = UploadLogUtils.getInstance();
         if (!isUploadSysLog(syslogOutputType)) {
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -247,12 +327,17 @@ public class FunctionHandlerImpl implements FunctionHandler {
                         format.parse(syslogStartTime),
                         Integer.parseInt(syslogContinueTime),
                         syslogFTPServer);
+                LogUtils.d(TAG, "captureAndUploadLog() start");
                 uploadLogUtils.start(sysLog);
+                LogUtils.d(TAG, "captureAndUploadLog() finish");
             } catch (ParseException e) {
                 e.printStackTrace();
             }
         } else {
-            uploadLogUtils.stopSendToSyslogServer();
+            if (uploadLogUtils != null) {
+                uploadLogUtils.stopSendToSyslogServer();
+                LogUtils.d(TAG, "captureAndUploadLog() stop send syslog to server");
+            }
         }
     }
 
@@ -277,7 +362,48 @@ public class FunctionHandlerImpl implements FunctionHandler {
                 parameterCacheList.add(parameter);
             }
         }
-        functionObserver.observerWifiEnable(wifiEnable, parameterCacheList, faultList);
+        if (!TextUtils.isEmpty(wifiEnable)) {
+            Intent intent = new Intent();
+            intent.setAction("com.android.settings");
+            if ("0".equals(wifiEnable)) {
+                LogUtils.d(TAG, "set parameters : make wifi enable");
+                intent.putExtra("WifiEnable", true);
+            } else {
+                LogUtils.d(TAG, "set parameters : make wifi disable");
+                intent.putExtra("WifiEnable", false);
+            }
+            LogUtils.d(TAG, "WifiEnable() start");
+            context.sendBroadcast(intent);
+            try {
+                Thread.sleep(2500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            LogUtils.d(TAG, "WifiEnable() finish");
+            WifiManager manager = (WifiManager) context.getApplicationContext().getSystemService
+                    (Context.WIFI_SERVICE);
+            if ((!"0".equals(wifiEnable)) && manager.isWifiEnabled()) {
+                // 如果下发关闭wifi，但是由于用户正在使用关闭失败，移除参数改变上报,恢复打开状态
+                if (parameterCacheList.size() > 0) {
+                    for (CWMPParameter parameter : parameterCacheList) {
+                        if (parameter.getName().contains("Device.X_CMCC_OTV.ServiceInfo" +
+                                ".WiFiEnable")) {
+                            parameterCacheList.remove(parameter);
+                            parameter.setValue("0");
+                            dbHandler.update(parameter);
+                            LogUtils.d(TAG, "the WiFi closed commend is issued" + "\n" +
+                                    "but the user is using the shutdown failure" + "\n" +
+                                    "remove the parameter change report and restore the open status");
+                        }
+                    }
+                }
+                SetParameterValuesFault fault = new SetParameterValuesFault();
+                fault.setFaultCode(9002);
+                fault.setFaultString("Closing wifi failure，wifi is using.");
+                fault.setParameterName("Device.X_CMCC_OTV.ServiceInfo.WiFiEnable");
+                faultList.add(fault);
+            }
+        }
         return faultList;
     }
 

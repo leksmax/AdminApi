@@ -49,35 +49,19 @@ public class FunctionObserver extends BaseObserver {
 
     private Disposable mPingDisposable;
 
-    private Disposable mTraceRouteDisposable;
-
     private Disposable mCapturePackageDisposable;
 
-    private Disposable mSpeedDisposable;
-
-    private Disposable mWifiDisposable;
-
-    private ParameterHandlerImpl parameterHandler;
-
     private DBHandlerImpl dbHandler;
-
-    private DBObserver dbObserver;
 
     private Context context;
 
     private int tcpdumpState = 1;
 
-    private ProtocolObserver mprotocolObserver;
-
     public static final String TAG = FunctionObserver.class.getSimpleName();
 
     private FunctionObserver() {
-        parameterHandler = ParameterHandlerImpl.getInstance();
         dbHandler = DBHandlerImpl.getInstance();
-        LogUtils.d(TAG, "new DBHandlerImpl for FunctionObserverF");
-        dbObserver = DBObserver.getInstance();
         context = BaseApplication.instance.getApplicationContext();
-        mprotocolObserver = ProtocolObserver.getInstance();
     }
 
     public static FunctionObserver getInstance() {
@@ -88,7 +72,7 @@ public class FunctionObserver extends BaseObserver {
     }
 
     public void observerPing(final CWMPPingRequest request) {
-        if (mPingDisposable != null & !mPingDisposable.isDisposed()) {
+        if (mPingDisposable != null && !mPingDisposable.isDisposed()) {
             removeObserver(mPingDisposable);
         }
         mPingDisposable = Observable.create(new ObservableOnSubscribe<CWMPPingResult>() {
@@ -98,27 +82,35 @@ public class FunctionObserver extends BaseObserver {
                 emitter.onNext(pingResult);
                 emitter.onComplete();
             }
-        }).subscribeOn(Schedulers.io())
+        }).subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Consumer<CWMPPingResult>() {
                     @Override
                     public void accept(CWMPPingResult pingResult) throws RemoteException {
-                        parameterHandler.setParameterValue(
+                        LogUtils.d(TAG, "ping result : " + "\n"
+                                + "MaximumResponseTime = " + pingResult.getMaximumResponseTime() + "\n"
+                                + "MinimumResponseTime = " + pingResult.getMinimumResponseTime() + "\n"
+                                + "AverageResponseTime = " + pingResult.getAverageResponseTime() + "\n"
+                                + "FailureCount = " + pingResult.getFailureCount() + "\n"
+                                + "SuccessCount = " + pingResult.getSuccessCount() + "\n"
+                                + "DiagnosticsState = " + pingResult.getDiagnosticsState() + "\n");
+
+                        dbHandler.update(
                                 "Device.LAN.IPPingDiagnostics.MaximumResponseTime",
                                 pingResult.getMaximumResponseTime() + "");
-                        parameterHandler.setParameterValue(
+                        dbHandler.update(
                                 "Device.LAN.IPPingDiagnostics.MinimumResponseTime",
                                 pingResult.getMinimumResponseTime() + "");
-                        parameterHandler.setParameterValue(
+                        dbHandler.update(
                                 "Device.LAN.IPPingDiagnostics.AverageResponseTime",
                                 pingResult.getAverageResponseTime() + "");
-                        parameterHandler.setParameterValue(
+                        dbHandler.update(
                                 "Device.LAN.IPPingDiagnostics.FailureCount",
                                 pingResult.getFailureCount() + "");
-                        parameterHandler.setParameterValue(
+                        dbHandler.update(
                                 "Device.LAN.IPPingDiagnostics.SuccessCount",
                                 pingResult.getSuccessCount() + "");
-                        parameterHandler.setParameterValue(
+                        dbHandler.update(
                                 "Device.LAN.IPPingDiagnostics.DiagnosticsState",
                                 pingResult.getDiagnosticsState());
                     }
@@ -126,63 +118,8 @@ public class FunctionObserver extends BaseObserver {
         addObserver(mPingDisposable);
     }
 
-    public void observerTraceRoute(final CWMPTraceRouteRequest request) {
-        if (mTraceRouteDisposable != null && !mTraceRouteDisposable.isDisposed()) {
-            removeObserver(mTraceRouteDisposable);
-        }
-        mTraceRouteDisposable = Observable.create(new ObservableOnSubscribe<CWMPTraceRouteResult>() {
-            @Override
-            public void subscribe(ObservableEmitter<CWMPTraceRouteResult> emitter)
-                    throws Exception {
-                CWMPTraceRouteResult traceResult = LinuxUtils.traceRoute(request);
-                emitter.onNext(traceResult);
-                emitter.onComplete();
-
-            }
-        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<CWMPTraceRouteResult>() {
-                    @Override
-                    public void accept(CWMPTraceRouteResult traceResult) throws RemoteException {
-                        parameterHandler.setParameterValue(
-                                "Device.LAN.TraceRouteDiagnostics.MaximumResponseTime",
-                                traceResult.getMaximumResponseTime() + "");
-                        parameterHandler.setParameterValue(
-                                "Device.LAN.TraceRouteDiagnostics.MinimumResponseTime",
-                                traceResult.getMinimumResponseTime() + "");
-                        parameterHandler.setParameterValue(
-                                "Device.LAN.TraceRouteDiagnostics.AverageResponseTime",
-                                traceResult.getAverageResponseTime() + "");
-                        parameterHandler.setParameterValue(
-                                "Device.LAN.TraceRouteDiagnostics.FailureCount",
-                                traceResult.getFailureCount() + "");
-                        parameterHandler.setParameterValue(
-                                "Device.LAN.TraceRouteDiagnostics.ResponseTime",
-                                traceResult.getResponseTime() + "");
-                        parameterHandler.setParameterValue(
-                                "Device.LAN.TraceRouteDiagnostics.DiagnosticsState",
-                                traceResult.getDiagnosticsState());
-                        parameterHandler.setParameterValue(
-                                "Device.LAN.TraceRouteDiagnostics.NumberOfRouteHops",
-                                traceResult.getNumberOfRouteHops() + "");
-                        dbHandler.delete("TraceRouteDiagnostics.RouteHops");
-                        for (int i = 0; i < traceResult.getRouteHops().size(); i++) {
-                            ContentValues cv = new ContentValues();
-                            cv.put(DBHandlerImpl.COLUMN_NAME,
-                                    String.format("Device.LAN.TraceRouteDiagnostics." +
-                                            "RouteHops.%s.HopHost", i + 1));
-                            cv.put(DBHandlerImpl.COLUMN_VALUE, traceResult.getRouteHops().get(i));
-                            cv.put(DBHandlerImpl.COLUMN_TYPE, "string(256)");
-                            cv.put(DBHandlerImpl.COLUMN_WRITABLE, "0");
-                            cv.put(DBHandlerImpl.COLUMN_SECURE, "0");
-                            cv.put(DBHandlerImpl.COLUMN_NOTIFICATION, "0");
-                        }
-                    }
-                });
-        addObserver(mTraceRouteDisposable);
-    }
-
     public void observerCapturePackage(final PacketCaptureRequest request) {
-        if (mCapturePackageDisposable != null & !mCapturePackageDisposable.isDisposed()) {
+        if (mCapturePackageDisposable != null && !mCapturePackageDisposable.isDisposed()) {
             removeObserver(mCapturePackageDisposable);
         }
         mCapturePackageDisposable = Observable.create(
@@ -190,14 +127,26 @@ public class FunctionObserver extends BaseObserver {
                     @Override
                     public void subscribe(ObservableEmitter<PacketCaptureRequest> emitter)
                             throws Exception {
+                        LogUtils.d(TAG, "capture package request : " + "\n"
+                                + "PacketCapture.State = " + request.getState() + "\n"
+                                + "PacketCapture.Duration = " + request.getDuration() + "\n"
+                                + "PacketCapture.IP = " + request.getIp() + "\n"
+                                + "PacketCapture.Port = " + request.getPort() + "\n"
+                                + "PacketCapture.UploadURL = " + request.getUploadURL() + "\n"
+                                + "PacketCapture.Username = " + request.getUsername() + "\n"
+                                + "PacketCapture.Password = " + request.getPassword() + "\n");
                         // 正在抓包
                         tcpdump(request);
+                        LogUtils.d(TAG, "start tcpdump");
                         // 下发新参数，删除之前的网络包，重新抓包
                         if (request.getState() == 3 && isNewPacketCaptureComm(request)) {
                             updatePacketCaptureComm(request);
                             LinuxUtils.removeSubFile("/data/data/com.konka" +
                                     ".kksdtr069/cache/pcap/");
                             tcpdump(request);
+                            LogUtils.d(TAG, "Issue new parameters" + "\n"
+                                    + "delete the previous network packet" + "\n"
+                                    + "recapture the packet has been completed" + "\n");
                         }
                         emitter.onNext(request);
                         emitter.onComplete();
@@ -248,6 +197,8 @@ public class FunctionObserver extends BaseObserver {
                                         tcpdumpState = 0;
                                         updatePacketCaptureComm(request);
                                         tcpdump(request);
+                                        LogUtils.d(TAG, "Issue new parameters" + "\n"
+                                                + "recapture the packet has been completed" + "\n");
                                     }
                                     // 上传网络包
                                     Boolean uploadResult = sftpUtils.uploadFile(uploadPath,
@@ -259,9 +210,11 @@ public class FunctionObserver extends BaseObserver {
                                         dbHandler.update("Device.X_00E0FC.PacketCapture" +
                                                 ".State", "1");
                                         sftpUtils.disconnect();
+                                        LogUtils.d(TAG, "Upload network package succeeded");
                                     } else {
                                         dbHandler.update("Device.X_00E0FC.PacketCapture" +
                                                 ".State", "7");
+                                        LogUtils.d(TAG, "Failed to upload network package");
                                     }
                                 } catch (RemoteException e) {
                                     e.printStackTrace();
@@ -272,97 +225,6 @@ public class FunctionObserver extends BaseObserver {
                     }
                 });
         addObserver(mCapturePackageDisposable);
-    }
-
-    public void speedMeasurement() {
-        if (mSpeedDisposable != null && !mSpeedDisposable.isDisposed()) {
-            removeObserver(mSpeedDisposable);
-        }
-        mSpeedDisposable = Observable.create(new ObservableOnSubscribe<NetMeasureUtils>() {
-            @Override
-            public void subscribe(ObservableEmitter<NetMeasureUtils> emitter) throws Exception {
-                NetMeasureUtils netMeasureUtils = NetMeasureUtils.getInstance();
-                netMeasureUtils.speedTest();
-                emitter.onNext(netMeasureUtils);
-                emitter.onComplete();
-            }
-        }).subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<NetMeasureUtils>() {
-                    @Override
-                    public void accept(NetMeasureUtils netMeasureUtils) throws Exception {
-                        netMeasureUtils.setSpeedTestCompletedListener(
-                                new NetMeasureUtils.SpeedTestCompletedListener() {
-                                    @Override
-                                    public void submitResult(boolean success) {
-                                        Log.d(TAG, "Speed test: succeed");
-                                        mprotocolObserver.diagnosisFinish();
-                                    }
-                                });
-                    }
-                });
-
-        addObserver(mSpeedDisposable);
-    }
-
-    public void observerWifiEnable(final String isWifiEnable,
-                                   final List<CWMPParameter> parameterCacheList,
-                                   final List<SetParameterValuesFault> faultList) {
-        if (mWifiDisposable != null && !mWifiDisposable.isDisposed()) {
-            removeObserver(mWifiDisposable);
-        }
-        mWifiDisposable = Observable.create(new ObservableOnSubscribe<String>() {
-            @Override
-            public void subscribe(ObservableEmitter<String> emitter) throws Exception {
-                if (!TextUtils.isEmpty(isWifiEnable)) {
-                    Intent intent = new Intent();
-                    intent.setAction("com.android.settings");
-                    if ("0".equals(isWifiEnable)) {
-                        LogUtils.d(TAG, "set parameters : make wifi enable");
-                        intent.putExtra("WifiEnable", true);
-                    } else {
-                        LogUtils.d(TAG, "set parameters : make wifi disable");
-                        intent.putExtra("WifiEnable", false);
-                    }
-                    context.sendBroadcast(intent);
-                    emitter.onNext(isWifiEnable);
-                    emitter.onComplete();
-                }
-            }
-        }).subscribeOn(Schedulers.newThread()).observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Consumer<String>() {
-                    @Override
-                    public void accept(String isWifiEnable) throws Exception {
-                        if (!TextUtils.isEmpty(isWifiEnable)) {
-                            WifiManager wifiManager = (WifiManager) context.getApplicationContext()
-                                    .getSystemService(Context.WIFI_SERVICE);
-                            if (isWifiEnable(isWifiEnable, wifiManager)) {
-                                /* 如果下发关闭wifi，但是由于用户正在使用关闭失败，移除参数改变上报,恢复打开状态 */
-                                for (CWMPParameter parameter : parameterCacheList) {
-                                    if (parameter.getName()
-                                            .contains("Device.X_CMCC_OTV.ServiceInfo.WiFiEnable")) {
-                                        parameterCacheList.remove(parameter);
-                                        parameter.setValue("0");
-                                        dbHandler.update(parameter);
-                                    }
-                                }
-                                dbObserver.notifyChange(parameterCacheList);
-                                SetParameterValuesFault fault = new SetParameterValuesFault();
-                                fault.setFaultCode(9002);
-                                fault.setFaultString("Closing wifi failure，wifi is using.");
-                                fault.setParameterName("Device.X_CMCC_OTV.ServiceInfo.WiFiEnable");
-                                faultList.add(fault);
-                            }
-                        }
-                    }
-                });
-
-        addObserver(mWifiDisposable);
-
-    }
-
-    private boolean isWifiEnable(String wifiEnable, WifiManager wifiManager) {
-        return (!"0".equals(wifiEnable)) && wifiManager.isWifiEnabled();
-
     }
 
     private boolean isNewPacketCaptureComm(PacketCaptureRequest request) throws RemoteException {

@@ -21,7 +21,7 @@ public class ParameterConstant {
             "Device.X_CMCC_OTV.ServiceInfo.UserID",
             "Device.X_CMCC_OTV.ServiceInfo.PPPoEID",
             "Device.X_CMCC_OTV.ServiceInfo.AuthURL",
-            "Device.X_00E0FC.SoftwareVersionList",
+            "Device.X_00E0FC.SoftwareVersionList"
     };
 
 }

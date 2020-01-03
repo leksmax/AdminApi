@@ -32,7 +32,8 @@ public class Tr069Provider extends ContentProvider {
             {"ro.product.model", "Device.DeviceInfo.ModelName"},
             {"ro.serialno", "Device.X_CMCC_OTV.STBInfo.STBID"},
             {"ro.product.model", "Device.DeviceInfo.ProductClass"},
-            {"ro.serialno", "Device.DeviceInfo.SerialNumber"}};
+            {"ro.serialno", "Device.DeviceInfo.SerialNumber"},
+            {"ro.mac", "Device.X_CMCC_OTV.ServiceInfo.UserID"}};
 
     static {
         sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -56,11 +57,16 @@ public class Tr069Provider extends ContentProvider {
             prop = s[0];
             dname = s[1];
 
-            String mac = PropertyUtils.getProperty(prop);
+            String propValue = "";
+            if (dname.contains("Device.X_CMCC_OTV.ServiceInfo.UserID")) {
+                propValue = PropertyUtils.getProperty(prop).replace(":", "").toUpperCase();
+            } else {
+                propValue = PropertyUtils.getProperty(prop);
+            }
             ContentValues cv = new ContentValues();
-            cv.put("value", mac);
+            cv.put("value", propValue);
             ret = update(Uri.parse(URI_AUTH), cv, "name=?", new String[]{dname});
-            LogUtils.i(TAG, "update:{" + prop + "} ret=" + ret);
+            LogUtils.i(TAG, "update:{" + dname + "} ret=" + ret);
         }
         updateDb("Device.ManagementServer.ConnectionRequestUsername", "cpe");
         updateDb("Device.ManagementServer.ConnectionRequestPassword", "cpe");
@@ -160,13 +166,13 @@ public class Tr069Provider extends ContentProvider {
         return db.delete(table, select, selectArgs);
     }
 
-    public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        String name = values.get(COLUMN_NAME) == null ? "" : values.get(COLUMN_NAME).toString();
-        String value = values.get(COLUMN_VALUE) == null ? "" : values.get(COLUMN_VALUE).toString();
+    public int update(Uri uri, ContentValues cv, String selection, String[] selectionArgs) {
+        String name = cv.get(COLUMN_NAME) == null ? "" : cv.get(COLUMN_NAME).toString();
+        String value = cv.get(COLUMN_VALUE) == null ? "" : cv.get(COLUMN_VALUE).toString();
         if ((name == null) || (name.equals(""))) {
             if (selectionArgs != null) {
                 name = selectionArgs[0];
-                values.put(COLUMN_NAME, name);
+                cv.put(COLUMN_NAME, name);
             }
         }
         LogUtils.i(TAG, "update(" + uri.toString() + ")");
@@ -186,7 +192,7 @@ public class Tr069Provider extends ContentProvider {
                 selectArgs = new String[]{(String) uri.getPathSegments().get(1)};
                 break;
         }
-        return db.update(table, values, select, selectArgs);
+        return db.update(table, cv, select, selectArgs);
     }
 
     public void onLowMemory() {

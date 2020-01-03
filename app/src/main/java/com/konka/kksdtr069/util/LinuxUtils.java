@@ -1,6 +1,7 @@
 package com.konka.kksdtr069.util;
 
 import android.content.Context;
+import android.util.Log;
 
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPPingRequest;
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPPingResult;
@@ -9,12 +10,14 @@ import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPTraceRouteResult;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,27 +38,43 @@ public class LinuxUtils {
      */
     public static CWMPPingResult ping(CWMPPingRequest request) {
         BufferedReader br = null;
+        StringBuilder errorMsg = null;
+        BufferedReader errorReader = null;
+        DataOutputStream dos = null;
+        Process p = null;
         int success = 0;
         int fail = 0;
+        String command = "ping" +
+                " -Q " + request.getDSCP() +
+                " -s " + request.getDataBlockSize() +
+                " -w " + request.getTimeout() +
+                " -c " + request.getNumberOfRepetitions() +
+                " " + request.getHost();
         CWMPPingResult result = new CWMPPingResult();
+
         try {
-            Process p = Runtime.getRuntime().exec("ping" +
-                    " -Q " + request.getDSCP() +
-                    " -s " + request.getDataBlockSize() +
-                    " -w " + request.getTimeout() +
-                    " -c " + request.getNumberOfRepetitions() +
-                    " " + request.getHost());
+            p = Runtime.getRuntime().exec("sh");
+            dos = new DataOutputStream(p.getOutputStream());
+            dos.write(command.getBytes());
+            dos.writeBytes("\n");
+            dos.writeBytes("exit\n");
+            dos.flush();
+
+            int status = p.waitFor();
             br = new BufferedReader(new InputStreamReader(p.getInputStream()));
             String line = null;
             while ((line = br.readLine()) != null) {
-                LogUtils.i("hjx", "ping: " + line);
+                Log.i(TAG, "ping: " + line);
                 if (line.contains("received")) {
                     String[] values = line.split(" ");
+                    for (int i = 0; i < values.length; i++) {
+                        Log.i(TAG, "value[" + i + "] = " + values[i]);
+                    }
                     success = Integer.parseInt(values[3]);
-                    fail = request.getNumberOfRepetitions() - success + 1;
+                    fail = request.getNumberOfRepetitions() - success;
                     result.setSuccessCount(success);
                     result.setFailureCount(fail);
-                    result.setDiagnosticsState(line);
+                    result.setDiagnosticsState("Complete");
                 } else if (line.startsWith("rtt")) {
                     Pattern pattern = Pattern.compile("(\\d+\\.\\d+)");
                     Matcher matcher = pattern.matcher(line);
@@ -63,7 +82,7 @@ public class LinuxUtils {
                     for (int i = 0; ; i++) {
                         if (matcher.find()) {
                             values[i] = matcher.group();
-                            LogUtils.i("hjx", "value[" + i + "] = " + values[i]);
+                            Log.i(TAG, "value[" + i + "] = " + values[i]);
                         } else
                             break;
                     }
@@ -72,10 +91,38 @@ public class LinuxUtils {
                     result.setMaximumResponseTime(Math.round(Double.parseDouble(values[2])));
                 }
             }
-            int status = p.waitFor();
-            LogUtils.i("hjx", "status = " + status);
+
+            errorMsg = new StringBuilder();
+            errorReader = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+            while ((line = errorReader.readLine()) != null) {
+                errorMsg.append(line);
+            }
+            StringBuilder commResult = new StringBuilder();
+            commResult.append("execute command :" + command + "\n"
+                    + "status : " + status + "\n");
+            if (errorMsg != null && !(errorMsg.toString().isEmpty())) {
+                commResult.append("errorMsg : " + errorMsg);
+            }
+            LogUtils.d(TAG, commResult.toString());
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
+            try {
+                if (dos != null) {
+                    dos.close();
+                }
+                if (br != null) {
+                    br.close();
+                }
+                if (errorReader != null) {
+                    errorReader.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            if (p != null) {
+                p.destroy();
+            }
         }
         return result;
     }
@@ -192,26 +239,62 @@ public class LinuxUtils {
      * @return
      */
     public static List<String> exeCommand(String cmd) {
-        LogUtils.i(TAG, "exe cmd = " + cmd);
+        LogUtils.i(TAG, "exe cmd : " + cmd);
         List<String> list = new ArrayList<String>();
-        BufferedReader br = null;
+        if (cmd == null || cmd.length() == 0) {
+            return null;
+        }
+        BufferedReader successReader = null;
+        BufferedReader errorReader = null;
+        StringBuilder errorMsg = null;
+        Process process = null;
+        DataOutputStream dos = null;
+        int status = -1;
         try {
-            Process p = Runtime.getRuntime().exec(cmd);
-            br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            process = Runtime.getRuntime().exec("sh");
+            dos = new DataOutputStream(process.getOutputStream());
+            dos.write(cmd.getBytes());
+            dos.writeBytes("\n");
+            dos.writeBytes("exit\n");
+            dos.flush();
+
+            status = process.waitFor();
+            successReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line = null;
-            while ((line = br.readLine()) != null) {
+            while ((line = successReader.readLine()) != null) {
                 LogUtils.i(TAG, "exe line = " + line);
                 list.add(line);
             }
-            int status = p.waitFor();
-            LogUtils.i(TAG, "exe status = " + status);
+
+            errorMsg = new StringBuilder();
+            errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+            StringBuilder commResult = new StringBuilder();
+            commResult.append("exe status : " + status + "\n");
+            while ((line = errorReader.readLine()) != null) {
+                errorMsg.append(line);
+            }
+            if (!(errorMsg.toString().isEmpty())) {
+                commResult.append("error msg : " + errorMsg.toString());
+            }
+            LogUtils.i(TAG, commResult.toString());
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
             try {
-                br.close();
+                if (dos != null) {
+                    dos.close();
+                }
+                if (successReader != null) {
+                    successReader.close();
+                }
+                if (errorReader != null) {
+                    errorReader.close();
+                }
             } catch (IOException e) {
-                return list;
+                e.printStackTrace();
+            }
+            if (process != null) {
+                process.destroy();
             }
         }
         return list;

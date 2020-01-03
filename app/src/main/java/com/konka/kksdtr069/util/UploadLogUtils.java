@@ -6,6 +6,7 @@ import com.konka.kksdtr069.constant.SysLogConstant;
 import com.konka.kksdtr069.model.SysLog;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -24,6 +25,8 @@ public class UploadLogUtils {
     private Process syslogProcess = null;
     private InputStream syslogErrIs = null;
     private InputStream syslogInIs = null;
+    private int status = -1;
+    private String cmd = "";
 
     private static UploadLogUtils instance;
 
@@ -60,9 +63,8 @@ public class UploadLogUtils {
             level = "E";
         }
         // 构造执行的命令例如：logcat -v detector -m 001A34B774D1 -T MGV2000 -p 135 -s *:*
-        String cmd = "logcat -v detector -m " + mac + " -T " + tag + " -p " + PRI + " -s *:" +
+        cmd = "logcat -v detector -m " + mac + " -T " + tag + " -p " + PRI + " -s *:" +
                 level;
-        Log.d(TAG, "start: " + cmd);
         command = cmd.split(" ");
         timer = new Timer();
         if (outPutType == SysLogConstant.OUTPUTTYPE_SFTP) {
@@ -103,13 +105,17 @@ public class UploadLogUtils {
                     destroy(syslogProcess, syslogErrIs, syslogInIs);
                 }
             }, sysLogContinueTime * 60 * 1000);
+            LogUtils.d(TAG, "exe command : " + cmd);
             syslogProcess = new ProcessBuilder().command(command).start();
+            status = syslogProcess.waitFor();
+            LogUtils.d(TAG, "exe status : " + status);
             syslogInIs = syslogProcess.getInputStream();
             sendToSyslogServer(sysLog);
-        } catch (IOException e) {
-            Log.d(TAG, "startSysLog failed:" + e.getMessage());
+        } catch (IOException | InterruptedException e) {
+            Log.d(TAG, "startSysLog failed :" + e.getMessage());
             e.printStackTrace();
-            destroy(syslogProcess, syslogErrIs, syslogInIs);
+        } finally {
+            stopSendToSyslogServer();
         }
     }
 
@@ -130,17 +136,18 @@ public class UploadLogUtils {
                     String line;
                     Log.d(TAG, "sendToSyslogServer: start loop");
                     while ((line = br.readLine()) != null) {
+                        LogUtils.d(TAG, "logInfo : " + line);
                         byte[] b = (line).getBytes("UTF-8");
                         //将字节数组的数据放入数据包并发送
                         dp = new DatagramPacket(b, b.length,
                                 InetAddress.getByName(syslogServerIP),
                                 Integer.parseInt(syslogServerPort));
                         ds.send(dp);
+                        LogUtils.d(TAG, "send syslog to server finish");
                     }
                 } catch (IOException e) {
                     Log.d(TAG, "sendToSyslogServer: failed!\n" + e.getMessage());
                     e.printStackTrace();
-                    stopSendToSyslogServer();
                 }
             }
         }).start();

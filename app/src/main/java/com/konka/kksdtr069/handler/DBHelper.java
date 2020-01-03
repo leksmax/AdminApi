@@ -176,7 +176,7 @@ public class DBHelper extends SQLiteOpenHelper {
             {"Device.X_CMCC_OTV.STBInfo.Platform", "", "string(16)", "0", "0", "2"},
             {"Device.X_CMCC_OTV.STBInfo.QRCodeMessage", "", "string(64)", "1", "0", "2"},
             {"Device.X_CMCC_OTV.STBInfo.PPPoEID", "", "string(36)", "0", "0", "0"},
-            {"Device.X_CMCC_OTV.STBInfo.PPPoEPassword","","string(16)","0","0","0"},
+            {"Device.X_CMCC_OTV.STBInfo.PPPoEPassword", "", "string(16)", "0", "0", "0"},
 
             {"Device.X_CMCC_OTV.ServiceInfo.PPPoEID", "", "string(36)", "1", "0", "2"},
             {"Device.X_CMCC_OTV.ServiceInfo.PPPoEPassword", "", "string(16)", "1", "0", "0"},

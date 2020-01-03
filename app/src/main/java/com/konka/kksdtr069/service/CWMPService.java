@@ -13,6 +13,7 @@ import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPDownloadRequest;
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPParameter;
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPSetParameterAttributesStruct;
 import net.sunniwell.cwmp.protocol.sdk.aidl.ICWMPNativeService;
+import net.sunniwell.cwmp.protocol.sdk.aidl.ICWMPProtocolService;
 import net.sunniwell.cwmp.protocol.sdk.aidl.SetParameterValuesFault;
 
 import java.util.ArrayList;
@@ -28,10 +29,13 @@ public class CWMPService extends ICWMPNativeService.Stub {
 
     private SystemHandler systemHandler;
 
-    public CWMPService() {
+    private ICWMPProtocolService mProtocolService;
+
+    public CWMPService(ICWMPProtocolService protocolService) {
         functionHandler = FunctionHandlerImpl.getInstance();
         parameterHandler = ParameterHandlerImpl.getInstance();
         systemHandler = SystemHandlerImpl.getInstance();
+        mProtocolService = protocolService;
     }
 
     /**
@@ -143,9 +147,10 @@ public class CWMPService extends ICWMPNativeService.Stub {
      */
     @Override
     public List<SetParameterValuesFault> setParameters(List<CWMPParameter> list) throws RemoteException {
+        LogUtils.d(TAG, "setParameters()");
         ArrayList<SetParameterValuesFault> faultList = new ArrayList<SetParameterValuesFault>();
-        functionHandler.pingDiagnosis(list);
-        functionHandler.traceRouteDiagnosis(list);
+        functionHandler.pingDiagnosis(list, mProtocolService);
+        functionHandler.traceRouteDiagnosis(list,mProtocolService);
         functionHandler.remoteNetPacketCapture(list);
         functionHandler.captureAndUploadLog(list);
         faultList.addAll(functionHandler.wifiEnable(list));

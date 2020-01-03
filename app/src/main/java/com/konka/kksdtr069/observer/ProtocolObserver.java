@@ -37,7 +37,6 @@ public class ProtocolObserver {
         this.context = BaseApplication.instance.getApplicationContext();
         this.parameterCacheList = new ArrayList<CWMPParameter>();
         this.mProtocolService = protocolService;
-        LogUtils.d(TAG, "ProtocolObserver() protocolService = " + protocolService);
     }
 
     private ProtocolObserver() {
@@ -63,6 +62,7 @@ public class ProtocolObserver {
                         return;
                     }
                     mProtocolService.onNetworkChanged(ipAddress, oldIpAddress);
+                    LogUtils.d(TAG, "onNetworkChanged");
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }
@@ -81,6 +81,7 @@ public class ProtocolObserver {
                         return;
                     }
                     mProtocolService.onValueChange(parameterCacheList);
+                    LogUtils.d(TAG, "onValueChange");
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }
@@ -99,6 +100,7 @@ public class ProtocolObserver {
                         return;
                     }
                     mProtocolService.onDiagnosisFinish();
+                    LogUtils.d(TAG, "onDiagnosisFinish");
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }
@@ -117,6 +119,7 @@ public class ProtocolObserver {
                         return;
                     }
                     mProtocolService.onUninstallFinish(list);
+                    LogUtils.d(TAG, "onUninstallFinish");
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }

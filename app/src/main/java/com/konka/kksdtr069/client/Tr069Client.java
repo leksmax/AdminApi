@@ -113,7 +113,7 @@ public class Tr069Client extends Service {
         Thread.sleep(2 * 1000);
         mProtocolObserver = new ProtocolObserver(mProtocolService);
         // 提供本地接口服务对象给朝歌中间件
-        mProtocolService.setNativeService(new CWMPService());
+        mProtocolService.setNativeService(new CWMPService(mProtocolService));
         // 通知朝歌中间件启动完成
         mProtocolService.onBoot();
         Log.d(TAG, "onServiceConnected() ProtocolService boot " +
