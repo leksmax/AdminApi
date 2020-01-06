@@ -8,20 +8,22 @@ import android.os.RemoteException;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.kkbasic.BasicMain;
+import com.kkbasic.MsgCallBack;
+import com.kkbasic.Tcpdump;
 import com.konka.kksdtr069.base.BaseApplication;
 import com.konka.kksdtr069.handler.FunctionHandler;
-import com.konka.kksdtr069.model.PacketCaptureRequest;
 import com.konka.kksdtr069.model.SysLog;
 import com.konka.kksdtr069.observer.FunctionObserver;
-import com.konka.kksdtr069.observer.ProtocolObserver;
 import com.konka.kksdtr069.util.LinuxUtils;
 import com.konka.kksdtr069.util.LogUtils;
 import com.konka.kksdtr069.util.NetMeasureUtils;
+import com.konka.kksdtr069.util.PropertyUtils;
+import com.konka.kksdtr069.util.SFTPUtils;
 import com.konka.kksdtr069.util.UploadLogUtils;
 
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPParameter;
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPPingRequest;
-import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPPingResult;
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPTraceRouteRequest;
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPTraceRouteResult;
 import net.sunniwell.cwmp.protocol.sdk.aidl.ICWMPProtocolService;
@@ -30,6 +32,7 @@ import net.sunniwell.cwmp.protocol.sdk.aidl.SetParameterValuesFault;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class FunctionHandlerImpl implements FunctionHandler {
@@ -43,6 +46,8 @@ public class FunctionHandlerImpl implements FunctionHandler {
     private DBHandlerImpl dbHandler;
 
     private FunctionObserver functionObserver;
+
+    private int pacgStatus = 1;
 
     private FunctionHandlerImpl() {
         context = BaseApplication.instance.getApplicationContext();
@@ -257,11 +262,111 @@ public class FunctionHandlerImpl implements FunctionHandler {
             }
         }
         if ("2".equals(packetState)) {
-            PacketCaptureRequest request = new PacketCaptureRequest(packetState, packetDuration,
-                    packetIP, packetPort, packetUploadURL, packetUsername, packetPassword);
-            LogUtils.d(TAG, "remoteNetPacketCapture() start");
-            functionObserver.observerCapturePackage(request);
-            LogUtils.d(TAG, "remoteNetPacketCapture() finish");
+            LogUtils.d(TAG, String.format("packetState = %s," +
+                            "packetDuration = %s," +
+                            "packetIP = %s," +
+                            "packetPort = %s," +
+                            "packetUploadURL = %s." +
+                            "packetUsername = %s," +
+                            "packetPassword = %s",
+                    packetState,
+                    packetDuration,
+                    packetIP,
+                    packetPort,
+                    packetUploadURL,
+                    packetUsername,
+                    packetPassword));
+            LogUtils.d(TAG, "Received a crawl network packet request");
+
+            LinuxUtils.removeSubFile("/data/data/com.konka.kksdtr069/cache/pcap/");
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
+            String date = sdf.format(new Date());
+            final String fileName = PropertyUtils.getProperty("ro.mac").replace(":", "") + "_" + date + "" +
+                    ".pcap";
+            dbHandler.update("Device.X_00E0FC.PacketCapture.State", "3");
+
+            final String finalPacketIP;
+            if (TextUtils.isEmpty(packetIP)) {
+                finalPacketIP = packetUploadURL.split("//")[1].split("/")[0].split(":")[0];
+            } else {
+                finalPacketIP = packetIP;
+            }
+
+            final String finalPacketPort;
+            if (TextUtils.isEmpty(packetPort)) {
+                finalPacketPort = packetUploadURL.split("//")[1].split("/")[0].split(":")[1];
+            } else {
+                finalPacketPort = packetPort;
+            }
+
+            final String finalPacketUsername = packetUsername;
+            final String finalPacketPassword = packetPassword;
+            final String finalUploadPath = packetUploadURL.split("//")[1].substring(packetUploadURL
+                    .split("//")[1].indexOf("/"));
+            BasicMain basicMain = BasicMain.GetInstance();
+            basicMain.regMsgHandler(context.getMainLooper(), new MsgCallBack() {
+                @Override
+                public int tcpdumpFinish(int error) {
+                    // Do something
+                    try {
+                        dbHandler.update("Device.X_00E0FC.PacketCapture.State", "5");
+                        Thread.sleep(1000);
+                        pacgStatus = 1;
+                        LogUtils.d(TAG, "tcpdump finish");
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                SFTPUtils sftpUtils = new SFTPUtils(finalPacketIP, finalPacketPort,
+                                        finalPacketUsername, finalPacketPassword);
+                                sftpUtils.connect();
+                                Boolean flag = sftpUtils.uploadFile(finalUploadPath, fileName,
+                                        "/data/data/com.konka.kksdtr069/cache/pcap/", fileName);
+                                try {
+                                    if (flag == true) {
+                                        dbHandler.update("Device.X_00E0FC.PacketCapture.State",
+                                                "6");
+                                        dbHandler.update("Device.X_00E0FC.PacketCapture.State",
+                                                "1");
+                                        sftpUtils.disconnect();
+                                        LogUtils.d(TAG, "upload packet success");
+                                    } else {
+                                        dbHandler.update("Device.X_00E0FC.PacketCapture.State",
+                                                "7");
+                                        LogUtils.d(TAG, "upload packet failed");
+                                    }
+                                } catch (RemoteException e) {
+                                    e.printStackTrace();
+                                }
+
+                            }
+                        }).start();
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    return 0;
+                }
+            });
+
+            Tcpdump tcpdump = Tcpdump.getInstance();
+            LogUtils.d(TAG, "Crawling network packet");
+            if (pacgStatus != 1) {
+                tcpdump.stop();
+            }
+            pacgStatus = 0;
+            String localPath = "/data/data/com.konka.kksdtr069/cache/pcap/" + fileName;
+            if (TextUtils.isEmpty(packetIP) && TextUtils.isEmpty(packetPort)) {
+                tcpdump.start(Integer.parseInt(packetDuration), localPath);
+            } else if (TextUtils.isEmpty(packetIP)) {
+                tcpdump.start(Integer.parseInt(packetPort), Integer.parseInt(packetDuration),
+                        localPath);
+            } else if (TextUtils.isEmpty(packetPort)) {
+                tcpdump.start(packetIP, Integer.parseInt(packetDuration), localPath);
+            } else {
+                tcpdump.start(Integer.parseInt(packetPort), packetIP, Integer.parseInt
+                        (packetDuration), localPath);
+            }
         }
     }
 

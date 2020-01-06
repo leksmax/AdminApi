@@ -51,15 +51,16 @@ public class SFTPUtils {
             Properties sshConfig = new Properties();
             sshConfig.put("StrictHostKeyChecking", "no");
             sshSession.setConfig(sshConfig);
-            sshSession.connect();
+            sshSession.connect(1500);
             Channel channel = sshSession.openChannel("sftp");
             if (channel != null) {
                 channel.connect();
             } else {
-                Log.e(TAG, "channel connecting failed.");
+                LogUtils.d(TAG, "channel connecting failed.");
             }
             sftp = (ChannelSftp) channel;
-        } catch ( JSchException e ) {
+            LogUtils.d(TAG, "sftp connect success,sftp = " + sftp);
+        } catch (JSchException e) {
             e.printStackTrace();
         }
         return sftp;
@@ -97,20 +98,21 @@ public class SFTPUtils {
         FileInputStream in = null;
         try {
             createDir(remotePath);
-            Log.d(TAG, "creatDir:" + remotePath);
+            LogUtils.d(TAG, "creatDir:" + remotePath);
             File file = new File(localPath + localFileName);
             in = new FileInputStream(file);
             sftp.put(in, remoteFileName);
+            LogUtils.d(TAG, "upload file finish successfully");
             return true;
-        } catch ( FileNotFoundException e ) {
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
-        } catch ( SftpException e ) {
+        } catch (SftpException e) {
             e.printStackTrace();
         } finally {
             if (in != null) {
                 try {
                     in.close();
-                } catch ( IOException e ) {
+                } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
@@ -144,7 +146,7 @@ public class SFTPUtils {
                 }
             }
             return true;
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             e.printStackTrace();
         } finally {
             this.disconnect();
@@ -194,7 +196,7 @@ public class SFTPUtils {
                     }
                 }
             }
-        } catch ( SftpException e ) {
+        } catch (SftpException e) {
             e.printStackTrace();
         } finally {
             this.disconnect();
@@ -219,9 +221,9 @@ public class SFTPUtils {
             mkdirs(localPath + localFileName);
             sftp.get(remoteFileName, new FileOutputStream(file));
             return true;
-        } catch ( FileNotFoundException e ) {
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
-        } catch ( SftpException e ) {
+        } catch (SftpException e) {
             e.printStackTrace();
         }
 
@@ -268,7 +270,7 @@ public class SFTPUtils {
             }
             this.sftp.cd(createpath);
             return true;
-        } catch ( SftpException e ) {
+        } catch (SftpException e) {
             e.printStackTrace();
         }
         return false;
@@ -287,10 +289,12 @@ public class SFTPUtils {
             SftpATTRS sftpATTRS = sftp.lstat(directory);
             isDirExistFlag = true;
             return sftpATTRS.isDir();
-        } catch ( Exception e ) {
-            if (e.getMessage().toLowerCase().equals("no such file")) {
-                isDirExistFlag = false;
-            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            LogUtils.d(TAG, "error msg : " + e.getMessage());
+//            if ("no such file".equals(e.getMessage().toLowerCase())) {
+//                isDirExistFlag = false;
+//            }
         }
         return isDirExistFlag;
     }
@@ -299,7 +303,7 @@ public class SFTPUtils {
         try {
             sftp.cd(directory);
             sftp.rm(deleteFile);
-        } catch ( Exception e ) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
