@@ -38,6 +38,9 @@ public class SFTPUtils {
         }
         this.username = username;
         this.password = password;
+        LogUtils.d(TAG, "sftp upload url = " + host + ":" + port + "\n"
+                + "sftp username = " + username + "\n"
+                + "sftp password = " + password);
     }
 
     /**
@@ -48,10 +51,12 @@ public class SFTPUtils {
         try {
             sshSession = jsch.getSession(username, host, port);
             sshSession.setPassword(password);
+
             Properties sshConfig = new Properties();
             sshConfig.put("StrictHostKeyChecking", "no");
             sshSession.setConfig(sshConfig);
-            sshSession.connect(1500);
+            sshSession.connect(10);
+
             Channel channel = sshSession.openChannel("sftp");
             if (channel != null) {
                 channel.connect();
@@ -291,7 +296,6 @@ public class SFTPUtils {
             return sftpATTRS.isDir();
         } catch (Exception e) {
             e.printStackTrace();
-            LogUtils.d(TAG, "error msg : " + e.getMessage());
 //            if ("no such file".equals(e.getMessage().toLowerCase())) {
 //                isDirExistFlag = false;
 //            }

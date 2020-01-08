@@ -7,12 +7,11 @@ import android.text.TextUtils;
 import com.konka.amlogicmiddleware.EthUtil;
 import com.konka.kksdtr069.base.BaseApplication;
 import com.konka.kksdtr069.handler.NetworkHandler;
-import com.konka.kksdtr069.observer.DBObserver;
-import com.konka.kksdtr069.observer.ProtocolObserver;
 import com.konka.kksdtr069.util.LogUtils;
 import com.konka.kksdtr069.util.PropertyUtils;
 
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPParameter;
+import net.sunniwell.cwmp.protocol.sdk.aidl.ICWMPProtocolService;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;
@@ -30,8 +29,6 @@ public class NetworkHandlerImpl implements NetworkHandler {
     private Context context;
 
     private DBHandlerImpl dbHandler;
-
-    private DBObserver dbObserver;
 
     private static final String ETHERNET_CONN_MODE_DHCP = "DHCP";
 
@@ -51,7 +48,6 @@ public class NetworkHandlerImpl implements NetworkHandler {
         this.context = BaseApplication.instance.getApplicationContext();
         this.dbHandler = DBHandlerImpl.getInstance();
         LogUtils.d(TAG, "new DBhandlerImpl for NetworkHandlerImpl");
-        this.dbObserver = DBObserver.getInstance();
     }
 
     public static NetworkHandlerImpl getInstance() {
@@ -63,14 +59,14 @@ public class NetworkHandlerImpl implements NetworkHandler {
 
     @Override
     public void updateNetwork(List<CWMPParameter> parameterCacheList,
-                              ProtocolObserver protocolObserver) throws RemoteException {
+                              ICWMPProtocolService protocolService) throws RemoteException {
         LogUtils.i(TAG, "updateNet");
         String netMode;// 网络类型
         String ipAddress;// 当前IP地址
         String oldIpAddress;// 数据库中保存的旧IP
 
         ipAddress = getClientIpAddress();
-        netMode = getNetMode(context);
+        netMode = getNetMode();
 
         // 若当前网络未连接，直接return,不需要更新数据库和上报
         if (TextUtils.isEmpty(netMode) || TextUtils.isEmpty(ipAddress)) {
@@ -113,13 +109,13 @@ public class NetworkHandlerImpl implements NetworkHandler {
             CWMPParameter netParameter = dbHandler.queryByName("Device.LAN.IPAddress");
             parameterCacheList.add(netParameter);
             // 上报新旧IP
-            protocolObserver.networkChanged(ipAddress, oldIpAddress);
+            protocolService.onNetworkChanged(ipAddress, oldIpAddress);
             LogUtils.i(TAG, "updateNet: onNetworkChanged");
         }
 
         if (!parameterCacheList.isEmpty()) {
             // 如果参数上报缓存不为空，向平台上报
-            dbObserver.notifyChange(parameterCacheList);
+            protocolService.onValueChange(parameterCacheList);
             LogUtils.i(TAG, "updateNet: report parameters in parameterCacheList.");
             parameterCacheList.clear();
         }
@@ -130,10 +126,9 @@ public class NetworkHandlerImpl implements NetworkHandler {
     /**
      * 获取当前使用的网络协议类型
      *
-     * @param context 上下文对象
      * @return ethMode 网络协议类型，若无网络连接，返回空字符串
      */
-    private String getNetMode(Context context) {
+    public String getNetMode() {
         String ethMode;
         int mode = EthUtil.getInstance(context).EthUtil_GetEthMode();
         switch (mode) {
@@ -165,7 +160,7 @@ public class NetworkHandlerImpl implements NetworkHandler {
      *
      * @return 若无网络连接，返回空字符串
      */
-    private String getClientIpAddress() {
+    public String getClientIpAddress() {
         try {
             // 获取本地设备的所有网络接口
             Enumeration<NetworkInterface> enumerationNi = NetworkInterface.getNetworkInterfaces();

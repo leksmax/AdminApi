@@ -10,9 +10,9 @@ import android.os.RemoteException;
 import com.konka.kksdtr069.base.BaseApplication;
 import com.konka.kksdtr069.base.BaseObserver;
 import com.konka.kksdtr069.handler.impl.NetworkHandlerImpl;
-import com.konka.kksdtr069.observer.ProtocolObserver;
 
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPParameter;
+import net.sunniwell.cwmp.protocol.sdk.aidl.ICWMPProtocolService;
 
 import java.util.ArrayList;
 
@@ -24,13 +24,18 @@ public class NetObserver extends BaseObserver {
 
     private NetReceiver mNetReceiver;
 
-    private NetObserver() {
+    private ICWMPProtocolService mProtocolService;
+
+    public static final String TAG = NetObserver.class.getSimpleName();
+
+    private NetObserver(ICWMPProtocolService protocolService) {
         context = BaseApplication.instance.getApplicationContext();
+        mProtocolService = protocolService;
     }
 
-    public static NetObserver getInstance() {
+    public static NetObserver getInstance(ICWMPProtocolService protocolService) {
         if (instance == null) {
-            instance = new NetObserver();
+            instance = new NetObserver(protocolService);
         }
         return instance;
     }
@@ -61,8 +66,7 @@ public class NetObserver extends BaseObserver {
             try {
                 // 当网络发生变化时，更新网络类型和IP地址
                 ArrayList<CWMPParameter> parameterCacheList = new ArrayList<CWMPParameter>();
-                ProtocolObserver protocolObserver = ProtocolObserver.getInstance();
-                mNetworkHandler.updateNetwork(parameterCacheList, protocolObserver);
+                mNetworkHandler.updateNetwork(parameterCacheList, mProtocolService);
             } catch (RemoteException e) {
                 e.printStackTrace();
             }

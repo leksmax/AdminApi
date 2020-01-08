@@ -14,7 +14,6 @@ import com.kkbasic.Tcpdump;
 import com.konka.kksdtr069.base.BaseApplication;
 import com.konka.kksdtr069.handler.FunctionHandler;
 import com.konka.kksdtr069.model.SysLog;
-import com.konka.kksdtr069.observer.FunctionObserver;
 import com.konka.kksdtr069.util.LinuxUtils;
 import com.konka.kksdtr069.util.LogUtils;
 import com.konka.kksdtr069.util.NetMeasureUtils;
@@ -24,6 +23,7 @@ import com.konka.kksdtr069.util.UploadLogUtils;
 
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPParameter;
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPPingRequest;
+import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPPingResult;
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPTraceRouteRequest;
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPTraceRouteResult;
 import net.sunniwell.cwmp.protocol.sdk.aidl.ICWMPProtocolService;
@@ -45,15 +45,12 @@ public class FunctionHandlerImpl implements FunctionHandler {
 
     private DBHandlerImpl dbHandler;
 
-    private FunctionObserver functionObserver;
-
     private int pacgStatus = 1;
 
     private FunctionHandlerImpl() {
         context = BaseApplication.instance.getApplicationContext();
         dbHandler = DBHandlerImpl.getInstance();
         LogUtils.d(TAG, "new DBHandlerImpl for FunctionHandlerImpl");
-        functionObserver = FunctionObserver.getInstance();
     }
 
     public static FunctionHandlerImpl getInstance() {
@@ -94,8 +91,49 @@ public class FunctionHandlerImpl implements FunctionHandler {
         if (!pingHost.isEmpty()) {
             final CWMPPingRequest request = initCWMPPingRequest(pingHost, pingState, pingRepeat,
                     pingTimeout, pingDBS, pingDSCP);
-            functionObserver.observerPing(request);
-            protocolService.onDiagnosisFinish();
+            LogUtils.d(TAG, "ping request : " + "\n"
+                    + "pingDiagnosticsState = " + request.getDiagnosticsState() + "\n"
+                    + "pingHost = " + request.getHost() + "\n"
+                    + "pingNumberOfRepetitions = " + request.getNumberOfRepetitions() + "\n"
+                    + "pingTimeout = " + request.getTimeout() + "\n"
+                    + "pingDataBlockSize = " + request.getDataBlockSize() + "\n"
+                    + "pingDSCP = " + request.getDSCP());
+            new Thread() {
+                @Override
+                public void run() {
+                    Log.d(TAG, "Ping: begin!");
+                    CWMPPingResult pingResult = LinuxUtils.ping(request);
+                    if (pingResult.getMaximumResponseTime() == 0
+                            || pingResult.getMinimumResponseTime() == 0
+                            || pingResult.getAverageResponseTime() == 0) {
+                        pingResult.setDiagnosticsState("Failure");
+                    }
+                    LogUtils.d(TAG, "ping result : " + "\n"
+                            + "MaximumResponseTime = " + pingResult.getMaximumResponseTime() + "\n"
+                            + "MinimumResponseTime = " + pingResult.getMinimumResponseTime() + "\n"
+                            + "AverageResponseTime = " + pingResult.getAverageResponseTime() + "\n"
+                            + "FailureCount = " + pingResult.getFailureCount() + "\n"
+                            + "SuccessCount = " + pingResult.getSuccessCount() + "\n"
+                            + "DiagnosticsState = " + pingResult.getDiagnosticsState() + "\n");
+                    try {
+                        dbHandler.update("Device.LAN.IPPingDiagnostics.MaximumResponseTime",
+                                pingResult.getMaximumResponseTime() + "");
+                        dbHandler.update("Device.LAN.IPPingDiagnostics.MinimumResponseTime",
+                                pingResult.getMinimumResponseTime() + "");
+                        dbHandler.update("Device.LAN.IPPingDiagnostics.AverageResponseTime",
+                                pingResult.getAverageResponseTime() + "");
+                        dbHandler.update("Device.LAN.IPPingDiagnostics.FailureCount", pingResult
+                                .getFailureCount() + "");
+                        dbHandler.update("Device.LAN.IPPingDiagnostics.SuccessCount", pingResult
+                                .getSuccessCount() + "");
+                        dbHandler.update("Device.LAN.IPPingDiagnostics.DiagnosticsState",
+                                pingResult.getDiagnosticsState());
+                        protocolService.onDiagnosisFinish();
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }.start();
         }
     }
 
@@ -137,6 +175,11 @@ public class FunctionHandlerImpl implements FunctionHandler {
                 public void run() {
                     LogUtils.d(TAG, "start trace route");
                     CWMPTraceRouteResult traceResult = LinuxUtils.traceRoute(request);
+                    if (traceResult.getNumberOfRouteHops() == 0 || traceResult.getResponseTime() == 0) {
+                        traceResult.setDiagnosticsState("Failure");
+                    } else {
+                        traceResult.setDiagnosticsState("Complete");
+                    }
                     LogUtils.d(TAG, "trace route result : " + "\n"
                             + "MaximumResponseTime = " + traceResult.getMaximumResponseTime() + "\n"
                             + "MinimumResponseTime = " + traceResult.getMinimumResponseTime() + "\n"
@@ -262,14 +305,14 @@ public class FunctionHandlerImpl implements FunctionHandler {
             }
         }
         if ("2".equals(packetState)) {
-            LogUtils.d(TAG, String.format("packetState = %s," +
-                            "packetDuration = %s," +
-                            "packetIP = %s," +
-                            "packetPort = %s," +
-                            "packetUploadURL = %s." +
-                            "packetUsername = %s," +
-                            "packetPassword = %s",
-                    packetState,
+            LogUtils.d(TAG, String.format("packetState = %s" + "\n" +
+                            "packetDuration = %s" + "\n" +
+                            "packetIP = %s" + "\n" +
+                            "packetPort = %s" + "\n" +
+                            "packetUploadURL = %s" + "\n" +
+                            "packetUsername = %s" + "\n" +
+                            "packetPassword = %s" + "\n" +
+                            packetState,
                     packetDuration,
                     packetIP,
                     packetPort,
@@ -281,28 +324,31 @@ public class FunctionHandlerImpl implements FunctionHandler {
             LinuxUtils.removeSubFile("/data/data/com.konka.kksdtr069/cache/pcap/");
             SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
             String date = sdf.format(new Date());
-            final String fileName = PropertyUtils.getProperty("ro.mac").replace(":", "") + "_" + date + "" +
-                    ".pcap";
+            final String fileName = PropertyUtils.getProperty("ro.mac")
+                    .replace(":", "") + "_" + date + "" + ".pcap";
             dbHandler.update("Device.X_00E0FC.PacketCapture.State", "3");
 
             final String finalPacketIP;
             if (TextUtils.isEmpty(packetIP)) {
-                finalPacketIP = packetUploadURL.split("//")[1].split("/")[0].split(":")[0];
+                finalPacketIP = packetUploadURL.split("//")[1]
+                        .split("/")[0].split(":")[0];
             } else {
                 finalPacketIP = packetIP;
             }
 
             final String finalPacketPort;
             if (TextUtils.isEmpty(packetPort)) {
-                finalPacketPort = packetUploadURL.split("//")[1].split("/")[0].split(":")[1];
+                finalPacketPort = packetUploadURL.split("//")[1]
+                        .split("/")[0].split(":")[1];
             } else {
                 finalPacketPort = packetPort;
             }
 
             final String finalPacketUsername = packetUsername;
             final String finalPacketPassword = packetPassword;
-            final String finalUploadPath = packetUploadURL.split("//")[1].substring(packetUploadURL
-                    .split("//")[1].indexOf("/"));
+            final String finalUploadPath = packetUploadURL.split("//")[1]
+                    .substring(packetUploadURL.split("//")[1].indexOf("/"));
+
             BasicMain basicMain = BasicMain.GetInstance();
             basicMain.regMsgHandler(context.getMainLooper(), new MsgCallBack() {
                 @Override
@@ -316,27 +362,30 @@ public class FunctionHandlerImpl implements FunctionHandler {
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
+                                LogUtils.d(TAG, "start upload file");
                                 SFTPUtils sftpUtils = new SFTPUtils(finalPacketIP, finalPacketPort,
                                         finalPacketUsername, finalPacketPassword);
                                 sftpUtils.connect();
-                                Boolean flag = sftpUtils.uploadFile(finalUploadPath, fileName,
-                                        "/data/data/com.konka.kksdtr069/cache/pcap/", fileName);
-                                try {
-                                    if (flag == true) {
-                                        dbHandler.update("Device.X_00E0FC.PacketCapture.State",
-                                                "6");
-                                        dbHandler.update("Device.X_00E0FC.PacketCapture.State",
-                                                "1");
-                                        sftpUtils.disconnect();
-                                        LogUtils.d(TAG, "upload packet success");
-                                    } else {
-                                        dbHandler.update("Device.X_00E0FC.PacketCapture.State",
-                                                "7");
-                                        LogUtils.d(TAG, "upload packet failed");
-                                    }
-                                } catch (RemoteException e) {
-                                    e.printStackTrace();
-                                }
+                                LogUtils.d(TAG, "sftp connected");
+//                                Boolean flag = sftpUtils.uploadFile(finalUploadPath, fileName,
+//                                        "/data/data/com.konka.kksdtr069/cache/pcap/", fileName);
+//                                LogUtils.d(TAG, "upload file finish");
+//                                try {
+//                                    if (flag == true) {
+//                                        dbHandler.update("Device.X_00E0FC.PacketCapture.State",
+//                                                "6");
+//                                        dbHandler.update("Device.X_00E0FC.PacketCapture.State",
+//                                                "1");
+//                                        sftpUtils.disconnect();
+//                                        LogUtils.d(TAG, "upload packet success");
+//                                    } else {
+//                                        dbHandler.update("Device.X_00E0FC.PacketCapture.State",
+//                                                "7");
+//                                        LogUtils.d(TAG, "upload packet failed");
+//                                    }
+//                                } catch (RemoteException e) {
+//                                    e.printStackTrace();
+//                                }
 
                             }
                         }).start();

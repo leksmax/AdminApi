@@ -132,7 +132,7 @@ public class DBHelper extends SQLiteOpenHelper {
             {"Device.LAN.Stats.QuarterHourPacketsSent", "", "unsignedInt", "0", "0", "0"},
             {"Device.LAN.Stats.QuarterHourPacketsReceived", "", "unsignedInt", "0", "0", "0"},
 
-            {"Device.LAN.IPPingDiagnostics.DiagnosticsState", "None", "string(256)", "1", "0", "0"},
+            {"Device.LAN.IPPingDiagnostics.DiagnosticsState", "None", "string(256)", "0", "0", "0"},
             {"Device.LAN.IPPingDiagnostics.Host", "", "string(256)", "1", "0", "0"},
             {"Device.LAN.IPPingDiagnostics.NumberOfRepetitions", "3", "unsignedInt[1:]", "1", "0", "0"},
             {"Device.LAN.IPPingDiagnostics.Timeout", "3000", "unsignedInt[1:]", "1", "0", "0"},
@@ -144,7 +144,7 @@ public class DBHelper extends SQLiteOpenHelper {
             {"Device.LAN.IPPingDiagnostics.MinimumResponseTime", "", "unsignedInt", "0", "0", "0"},
             {"Device.LAN.IPPingDiagnostics.MaximumResponseTime", "", "unsignedInt", "0", "0", "0"},
 
-            {"Device.LAN.TraceRouteDiagnostics.DiagnosticsState", "None", "string(256)", "1", "0", "0"},
+            {"Device.LAN.TraceRouteDiagnostics.DiagnosticsState", "None", "string(256)", "0", "0", "0"},
             {"Device.LAN.TraceRouteDiagnostics.Host", "", "string(256)", "1", "0", "0"},
             {"Device.LAN.TraceRouteDiagnostics.Timeout", "3000", "unsignedInt[1:]", "1", "0", "0"},
             {"Device.LAN.TraceRouteDiagnostics.DataBlockSize", "32", "unsignedInt[1:65535]", "1", "0", "0"},

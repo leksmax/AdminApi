@@ -178,14 +178,14 @@ public class CWMPService extends ICWMPNativeService.Stub {
     }
 
     /**
-     * Download 事件: 应用下载安装或升级、开机动画升级、固件版本升级。
+     * Download 事件: 应用下载安装或升级、固件版本升级。
      *
      * @param cwmpDownloadRequest 请求下载需要传递的参数
      */
     @Override
     public void download(CWMPDownloadRequest cwmpDownloadRequest) {
         LogUtils.d(TAG, "download()");
-        systemHandler.download(cwmpDownloadRequest);
+        systemHandler.download(cwmpDownloadRequest,mProtocolService);
     }
 
     /**
@@ -208,7 +208,7 @@ public class CWMPService extends ICWMPNativeService.Stub {
     @Override
     public void uninstall(List<AppID> list) {
         LogUtils.d(TAG, "uninstall()");
-        systemHandler.appUninstall(list);
+        systemHandler.appUninstall(list,mProtocolService);
     }
 
     @Override

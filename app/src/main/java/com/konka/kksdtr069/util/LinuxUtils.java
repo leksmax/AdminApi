@@ -97,13 +97,12 @@ public class LinuxUtils {
             while ((line = errorReader.readLine()) != null) {
                 errorMsg.append(line);
             }
-            StringBuilder commResult = new StringBuilder();
-            commResult.append("execute command :" + command + "\n"
+            LogUtils.d(TAG, "execute command :" + command + "\n"
                     + "status : " + status + "\n");
             if (errorMsg != null && !(errorMsg.toString().isEmpty())) {
-                commResult.append("errorMsg : " + errorMsg);
+                errorMsg.append("errorMsg : " + errorMsg);
+                LogUtils.d(TAG, errorMsg.toString());
             }
-            LogUtils.d(TAG, commResult.toString());
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -149,8 +148,9 @@ public class LinuxUtils {
                 " -m " + request.getMaxHopCount() +
                 " -w " + request.getTimeout() +
                 dscp + " " + request.getHost() + " " + request.getDataBlockSize());
-        if (list.size() > 0)
+        if (list.size() > 0) {
             list.remove(0);
+        }
         for (String line : list) {
             count++;
             String[] ss = line.trim().split("\\s+");
@@ -325,7 +325,8 @@ public class LinuxUtils {
                 baos.write(read);
             }
             result = new String(baos.toByteArray());
-            LogUtils.i(TAG, "execCommand: " + Arrays.toString(command).replace(",", " ") + " result = " + result);
+            LogUtils.i(TAG, "execCommand: " + Arrays.toString(command)
+                    .replace(",", " ") + " result = " + result);
             status = process.waitFor();
         } catch (Exception e) {
             e.printStackTrace();

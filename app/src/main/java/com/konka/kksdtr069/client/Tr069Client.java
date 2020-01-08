@@ -5,34 +5,21 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.os.Bundle;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.konka.kksdtr069.handler.impl.NetworkHandlerImpl;
-import com.konka.kksdtr069.observer.DBObserver;
-import com.konka.kksdtr069.observer.ProtocolObserver;
 import com.konka.kksdtr069.receiver.NetObserver;
 import com.konka.kksdtr069.service.CWMPService;
-import com.konka.kksdtr069.util.LogUtils;
 
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPParameter;
 import net.sunniwell.cwmp.protocol.sdk.aidl.ICWMPProtocolService;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
-import io.reactivex.schedulers.Schedulers;
 
 public class Tr069Client extends Service {
 
@@ -41,10 +28,6 @@ public class Tr069Client extends Service {
     private List<CWMPParameter> parameterCacheList;
 
     private ICWMPProtocolService mProtocolService;
-
-    private ProtocolObserver mProtocolObserver;
-
-    private DBObserver dbObserver;
 
     private NetworkHandlerImpl networkHandler;
 
@@ -72,7 +55,7 @@ public class Tr069Client extends Service {
             try {
                 initNativeService();
                 // 每次启动更新网络类型和IP地址
-                networkHandler.updateNetwork(parameterCacheList, mProtocolObserver);
+                networkHandler.updateNetwork(parameterCacheList, mProtocolService);
             } catch (RemoteException | InterruptedException e) {
                 e.printStackTrace();
             }
@@ -95,12 +78,10 @@ public class Tr069Client extends Service {
 
     public void init() {
         parameterCacheList = new ArrayList<>();
-        dbObserver = DBObserver.getInstance();
         networkHandler = NetworkHandlerImpl.getInstance();
-        netObserver = NetObserver.getInstance();
         bindCWMPService();
+        netObserver = NetObserver.getInstance(mProtocolService);
         netObserver.registerNetReceiver();
-        dbObserver.registerDBObserver();
     }
 
     public void bindCWMPService() {
@@ -111,7 +92,6 @@ public class Tr069Client extends Service {
 
     public void initNativeService() throws RemoteException, InterruptedException {
         Thread.sleep(2 * 1000);
-        mProtocolObserver = new ProtocolObserver(mProtocolService);
         // 提供本地接口服务对象给朝歌中间件
         mProtocolService.setNativeService(new CWMPService(mProtocolService));
         // 通知朝歌中间件启动完成
@@ -128,7 +108,6 @@ public class Tr069Client extends Service {
     }
 
     private void release() {
-        dbObserver.unRegisterDBObserver();
         netObserver.unregisterNetReceiver();
         if (mProtocolService != null) {
             mProtocolService = null;
