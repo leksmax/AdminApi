@@ -101,14 +101,18 @@ public class FunctionHandlerImpl implements FunctionHandler {
             new Thread() {
                 @Override
                 public void run() {
-                    Log.d(TAG, "Ping: begin!");
                     CWMPPingResult pingResult = LinuxUtils.ping(request);
                     if (pingResult.getMaximumResponseTime() == 0
                             || pingResult.getMinimumResponseTime() == 0
                             || pingResult.getAverageResponseTime() == 0) {
                         pingResult.setDiagnosticsState("Failure");
                     }
-                    LogUtils.d(TAG, "ping result : " + "\n"
+                    LogUtils.d(TAG, "exe command : ping" +
+                            " -Q " + request.getDSCP() +
+                            " -s " + request.getDataBlockSize() +
+                            " -w " + request.getTimeout() +
+                            " -c " + request.getNumberOfRepetitions() +
+                            " " + request.getHost() + "\n"
                             + "MaximumResponseTime = " + pingResult.getMaximumResponseTime() + "\n"
                             + "MinimumResponseTime = " + pingResult.getMinimumResponseTime() + "\n"
                             + "AverageResponseTime = " + pingResult.getAverageResponseTime() + "\n"
@@ -180,7 +184,10 @@ public class FunctionHandlerImpl implements FunctionHandler {
                     } else {
                         traceResult.setDiagnosticsState("Complete");
                     }
-                    LogUtils.d(TAG, "trace route result : " + "\n"
+                    LogUtils.d(TAG, "exe command : trace route" +
+                            " -m " + request.getMaxHopCount() +
+                            " -w " + request.getTimeout() +
+                            " " + request.getHost() + " " + request.getDataBlockSize() + "\n"
                             + "MaximumResponseTime = " + traceResult.getMaximumResponseTime() + "\n"
                             + "MinimumResponseTime = " + traceResult.getMinimumResponseTime() + "\n"
                             + "AverageResponseTime = " + traceResult.getAverageResponseTime() + "\n"

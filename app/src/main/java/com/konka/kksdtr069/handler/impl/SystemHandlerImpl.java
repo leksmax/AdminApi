@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.RemoteException;
 import android.text.TextUtils;
 
+import com.konka.amlogicmiddleware.logotool.LogoTools;
 import com.konka.kksdtr069.base.BaseApplication;
 import com.konka.kksdtr069.handler.SystemHandler;
 import com.konka.kksdtr069.util.DownloadUtil;
@@ -48,16 +49,17 @@ public class SystemHandlerImpl implements SystemHandler {
         int result = -1;
         for (AppID app : list) {
             try {
-                result = LinuxUtils.execCommand("pm", "uninstall", app.packageName);
-                LogUtils.d(TAG, "11.04 execute command result : " + result);
-                result = result == 0 ? 1 : 0; // 0：卸载失败；1：卸载成功
-
-                // 卸载的apk不存在
-                List<String> apkList = LinuxUtils.exeCommand("ll data/data");
+                LogUtils.d(TAG, "uninstall apk : " + app.packageName);
+                // 检查卸载的apk是否存在
+                List<String> apkList = LinuxUtils.exeCommand("ls -l data/data");
                 String apks = apkList.toString();
-                LogUtils.d(TAG, "installed apks : " + apks);
                 if (!(apks.contains(app.packageName))) {
                     result = 2;
+                    LogUtils.d(TAG, "uninstalled apk does not exist");
+                }
+                if (result != 2) {
+                    result = LinuxUtils.execCommand("pm", "uninstall", app.packageName);
+                    result = result == 0 ? 1 : 0; // 0：卸载失败；1：卸载成功
                 }
                 LogUtils.d(TAG, "uninstall apk result : " + result);
                 resultList.add(new AppID(app.packageName, result));
@@ -70,9 +72,9 @@ public class SystemHandlerImpl implements SystemHandler {
 
     @Override
     public void download(CWMPDownloadRequest request, ICWMPProtocolService protocolService) {
-        LogUtils.d(TAG, "download type :" + request.getType() + "\n" +
-                " url :" + request.getUrl() + "\n" +
-                "commandKey :" + request.getCommandKey() + "\n" +
+        LogUtils.d(TAG, "download type : " + request.getType() + "\n" +
+                " url : " + request.getUrl() + "\n" +
+                "commandKey : " + request.getCommandKey() + "\n" +
                 "file_md5 : " + request.getMd5());
         Intent intent = new Intent();
         intent.putExtra("type", request.getType());

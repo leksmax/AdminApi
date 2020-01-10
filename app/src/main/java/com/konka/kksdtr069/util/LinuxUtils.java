@@ -100,7 +100,6 @@ public class LinuxUtils {
             LogUtils.d(TAG, "execute command :" + command + "\n"
                     + "status : " + status + "\n");
             if (errorMsg != null && !(errorMsg.toString().isEmpty())) {
-                errorMsg.append("errorMsg : " + errorMsg);
                 LogUtils.d(TAG, errorMsg.toString());
             }
         } catch (Exception e) {
@@ -239,7 +238,6 @@ public class LinuxUtils {
      * @return
      */
     public static List<String> exeCommand(String cmd) {
-        LogUtils.i(TAG, "exe cmd : " + cmd);
         List<String> list = new ArrayList<String>();
         if (cmd == null || cmd.length() == 0) {
             return null;
@@ -268,15 +266,14 @@ public class LinuxUtils {
 
             errorMsg = new StringBuilder();
             errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-            StringBuilder commResult = new StringBuilder();
-            commResult.append("exe status : " + status + "\n");
+            LogUtils.i(TAG, "exe cmd : " + cmd + "\n"
+                    + "status : " + status);
             while ((line = errorReader.readLine()) != null) {
                 errorMsg.append(line);
             }
             if (!(errorMsg.toString().isEmpty())) {
-                commResult.append("error msg : " + errorMsg.toString());
+                LogUtils.d(TAG, "error msg : " + errorMsg.toString());
             }
-            LogUtils.i(TAG, commResult.toString());
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
