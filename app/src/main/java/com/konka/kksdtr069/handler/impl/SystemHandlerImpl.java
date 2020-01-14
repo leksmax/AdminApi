@@ -44,30 +44,39 @@ public class SystemHandlerImpl implements SystemHandler {
     }
 
     @Override
-    public void appUninstall(List<AppID> list, ICWMPProtocolService protocolService) {
-        List<AppID> resultList = new ArrayList<AppID>();
-        int result = -1;
-        for (AppID app : list) {
-            try {
-                LogUtils.d(TAG, "uninstall apk : " + app.packageName);
-                // 检查卸载的apk是否存在
-                List<String> apkList = LinuxUtils.exeCommand("ls -l data/data");
-                String apks = apkList.toString();
-                if (!(apks.contains(app.packageName))) {
-                    result = 2;
-                    LogUtils.d(TAG, "uninstalled apk does not exist");
+    public void appUninstall(final List<AppID> list, final ICWMPProtocolService protocolService) {
+        new Thread() {
+            @Override
+            public void run() {
+                super.run();
+                for (AppID app : list) {
+                    String resultCode = "";
+                    try {
+                        if (!LinuxUtils.isAppInstalled(app.packageName)) {
+                            app.result = 2;
+                            LogUtils.d(TAG, "uninstalled apk does not exist");
+                            continue;
+                        }
+                        resultCode = LinuxUtils.execCommandForString("pm", "uninstall", app.packageName);
+                        if (resultCode.contains("Failure")) {
+                            app.result = 0;
+                        } else {
+                            app.result = 1;
+                        }
+                    } catch (InterruptedException | IOException e) {
+                        e.printStackTrace();
+                        app.result = 0;
+                    }
+                    LogUtils.d(TAG, "uninstall apk " + app.packageName
+                            + " result : " + app.result + " resultCode : " + resultCode);
                 }
-                if (result != 2) {
-                    result = LinuxUtils.execCommand("pm", "uninstall", app.packageName);
-                    result = result == 0 ? 1 : 0; // 0：卸载失败；1：卸载成功
+                try {
+                    protocolService.onUninstallFinish(list);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
                 }
-                LogUtils.d(TAG, "uninstall apk result : " + result);
-                resultList.add(new AppID(app.packageName, result));
-                protocolService.onUninstallFinish(resultList);
-            } catch (RemoteException | InterruptedException | IOException e) {
-                e.printStackTrace();
             }
-        }
+        }.start();
     }
 
     @Override

@@ -58,6 +58,19 @@ public class ParameterHandlerImpl implements ParameterHandler {
 
     @Override
     public int setParameterValue(String name, String value) throws RemoteException {
-        return dbHandler.update(name, value);
+        int result = 0;
+        if (name.equals("Device.LAN.IPAddress") || name.equals("Device.LAN.DefaultGateway") ||
+                name.equals("Device.LAN.DNSServers2")) {
+            String addressingType = dbHandler.queryByNameForString("Device.LAN.AddressingType");
+            LogUtils.d(TAG, "addressing type = " + addressingType);
+            if (addressingType.equals("STATIC")) {
+                result = dbHandler.update(name, value);
+                LogUtils.d(TAG, "update static ip result = " + result);
+            }
+        } else {
+            result = dbHandler.update(name, value);
+        }
+        return result;
+
     }
 }

@@ -106,13 +106,13 @@ public class DBHelper extends SQLiteOpenHelper {
             {"Device.UserInterface.CurrentLanguage", "", "string(16)", "1", "0", "2"},
 
             {"Device.LAN.AddressingType", "", "string(15)", "1", "0", "2"},
-            {"Device.LAN.IPAddress", "", "string(15)", "1", "0", "2"},
-            {"Device.LAN.SubnetMask", "", "string(15)", "1", "0", "0"},
+            {"Device.LAN.IPAddress", "", "string(15)", "0", "0", "2"},
+            {"Device.LAN.SubnetMask", "", "string(15)", "0", "0", "0"},
             {"Device.LAN.DefaultGateway", "", "string(15)", "1", "0", "0"},
             {"Device.LAN.DNSServers", "", "string(256)", "1", "0", "0"},
-            {"Device.LAN.DNSServers2", "", "string(256)", "1", "0", "0"},
+            {"Device.LAN.DNSServers2", "", "string(256)", "0", "0", "0"},
             {"Device.LAN.MACAddress", "", "string(17)", "0", "0", "2"},
-            {"Device.LAN.MACAddressOverride", "", "boolean", "1", "0", "0"},
+            {"Device.LAN.MACAddressOverride", "", "boolean", "0", "0", "0"},
             {"Device.LAN.DHCPOptionNumberOfEntries", "", "unsignedInt", "0", "0", "0"},
             {"Device.LAN.IsSupportIPV6", "", "boolean", "0", "0", "0"},
 

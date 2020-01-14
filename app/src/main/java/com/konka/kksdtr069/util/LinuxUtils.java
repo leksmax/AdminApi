@@ -1,6 +1,8 @@
 package com.konka.kksdtr069.util;
 
 import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.util.Log;
 
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPPingRequest;
@@ -322,9 +324,10 @@ public class LinuxUtils {
                 baos.write(read);
             }
             result = new String(baos.toByteArray());
-            LogUtils.i(TAG, "execCommand: " + Arrays.toString(command)
-                    .replace(",", " ") + " result = " + result);
             status = process.waitFor();
+            LogUtils.i(TAG, "execCommand: " + Arrays.toString(command)
+                    .replace(",", " ")
+                    + " result = " + result + " status = " + status);
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -345,6 +348,61 @@ public class LinuxUtils {
         return status;
     }
 
+    public static boolean isAppInstalled(String appName) {
+        List<String> apkList = exeCommand("ls -l data/data");
+        for (String apkInform : apkList) {
+            String[] app = apkInform.split(" ");
+            LogUtils.d(TAG, "apk name = " + app[app.length - 1]);
+            if (app[app.length - 1].equals(appName)) {
+                return true;
+            }
+
+        }
+        return false;
+    }
+
+    public static String execCommandForString(String... command) throws IOException, InterruptedException {
+        Process process = null;
+        InputStream errIs = null;
+        InputStream inIs = null;
+        String result = "";
+        int status = -1;
+        try {
+            process = new ProcessBuilder().command(command).start();
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            int read = -1;
+            errIs = process.getErrorStream();
+            while ((read = errIs.read()) != -1) {
+                baos.write(read);
+            }
+            inIs = process.getInputStream();
+            while ((read = inIs.read()) != -1) {
+                baos.write(read);
+            }
+            result = new String(baos.toByteArray());
+            status = process.waitFor();
+            LogUtils.i(TAG, "execCommand: " + Arrays.toString(command)
+                    .replace(",", " ")
+                    + " result = " + result + " status = " + status);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (inIs != null) {
+                    inIs.close();
+                }
+                if (errIs != null) {
+                    errIs.close();
+                }
+                if (process != null) {
+                    process.destroy();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
 
     public static void removeSubFile(String dirPath) {
         File dir = new File(dirPath);

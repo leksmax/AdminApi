@@ -374,26 +374,25 @@ public class FunctionHandlerImpl implements FunctionHandler {
                                         finalPacketUsername, finalPacketPassword);
                                 sftpUtils.connect();
                                 LogUtils.d(TAG, "sftp connected");
-//                                Boolean flag = sftpUtils.uploadFile(finalUploadPath, fileName,
-//                                        "/data/data/com.konka.kksdtr069/cache/pcap/", fileName);
-//                                LogUtils.d(TAG, "upload file finish");
-//                                try {
-//                                    if (flag == true) {
-//                                        dbHandler.update("Device.X_00E0FC.PacketCapture.State",
-//                                                "6");
-//                                        dbHandler.update("Device.X_00E0FC.PacketCapture.State",
-//                                                "1");
-//                                        sftpUtils.disconnect();
-//                                        LogUtils.d(TAG, "upload packet success");
-//                                    } else {
-//                                        dbHandler.update("Device.X_00E0FC.PacketCapture.State",
-//                                                "7");
-//                                        LogUtils.d(TAG, "upload packet failed");
-//                                    }
-//                                } catch (RemoteException e) {
-//                                    e.printStackTrace();
-//                                }
-
+                                Boolean flag = sftpUtils.uploadFile(finalUploadPath, fileName,
+                                        "/data/data/com.konka.kksdtr069/cache/pcap/", fileName);
+                                LogUtils.d(TAG, "upload file finish");
+                                try {
+                                    if (flag == true) {
+                                        dbHandler.update("Device.X_00E0FC.PacketCapture.State",
+                                                "6");
+                                        dbHandler.update("Device.X_00E0FC.PacketCapture.State",
+                                                "1");
+                                        sftpUtils.disconnect();
+                                        LogUtils.d(TAG, "upload packet success");
+                                    } else {
+                                        dbHandler.update("Device.X_00E0FC.PacketCapture.State",
+                                                "7");
+                                        LogUtils.d(TAG, "upload packet failed");
+                                    }
+                                } catch (RemoteException e) {
+                                    e.printStackTrace();
+                                }
                             }
                         }).start();
                     } catch (RemoteException e) {
