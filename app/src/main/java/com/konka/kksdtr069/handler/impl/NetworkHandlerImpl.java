@@ -7,8 +7,8 @@ import android.text.TextUtils;
 import com.konka.amlogicmiddleware.EthUtil;
 import com.konka.kksdtr069.base.BaseApplication;
 import com.konka.kksdtr069.handler.NetworkHandler;
-import com.konka.kksdtr069.util.LogUtils;
-import com.konka.kksdtr069.util.PropertyUtils;
+import com.konka.kksdtr069.util.LogUtil;
+import com.konka.kksdtr069.util.PropertyUtil;
 
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPParameter;
 import net.sunniwell.cwmp.protocol.sdk.aidl.ICWMPProtocolService;
@@ -47,7 +47,7 @@ public class NetworkHandlerImpl implements NetworkHandler {
     private NetworkHandlerImpl() {
         this.context = BaseApplication.instance.getApplicationContext();
         this.dbHandler = DBHandlerImpl.getInstance();
-        LogUtils.d(TAG, "new DBhandlerImpl for NetworkHandlerImpl");
+        LogUtil.d(TAG, "new DBhandlerImpl for NetworkHandlerImpl");
     }
 
     public static NetworkHandlerImpl getInstance() {
@@ -60,7 +60,7 @@ public class NetworkHandlerImpl implements NetworkHandler {
     @Override
     public void updateNetwork(List<CWMPParameter> parameterCacheList,
                               ICWMPProtocolService protocolService) throws RemoteException {
-        LogUtils.i(TAG, "updateNet");
+        LogUtil.i(TAG, "updateNet");
         String netMode;// 网络类型
         String ipAddress;// 当前IP地址
         String oldIpAddress;// 数据库中保存的旧IP
@@ -70,7 +70,7 @@ public class NetworkHandlerImpl implements NetworkHandler {
 
         // 若当前网络未连接，直接return,不需要更新数据库和上报
         if (TextUtils.isEmpty(netMode) || TextUtils.isEmpty(ipAddress)) {
-            LogUtils.i(TAG, "updateNet: network is disconnect");
+            LogUtil.i(TAG, "updateNet: network is disconnect");
             return;
         }
 
@@ -80,7 +80,7 @@ public class NetworkHandlerImpl implements NetworkHandler {
             netMode = ETHERNET_CONN_MODE_DHCP;
         }
 
-        LogUtils.i(TAG, String.format("updateNet: ipAddress = %s,netMode = %s", ipAddress, netMode));
+        LogUtil.i(TAG, String.format("updateNet: ipAddress = %s,netMode = %s", ipAddress, netMode));
 
         boolean isNetModeChanged = dbHandler.isDifferentFromDB(netMode,
                 "Device.LAN.AddressingType");
@@ -94,7 +94,7 @@ public class NetworkHandlerImpl implements NetworkHandler {
                 // 若当前是PPPoE网络，将PPPoE账号参数加入上报缓存
                 CWMPParameter pppoeParameter = dbHandler.queryByName("Device.X_CMCC_OTV." +
                         "ServiceInfo.PPPoEID");
-                LogUtils.i(TAG, "updateNet: PPPoE id is" + pppoeParameter.getValue());
+                LogUtil.i(TAG, "updateNet: PPPoE id is" + pppoeParameter.getValue());
                 parameterCacheList.add(pppoeParameter);
             }
             // 将网络类型参数加入上报缓存
@@ -110,13 +110,13 @@ public class NetworkHandlerImpl implements NetworkHandler {
             parameterCacheList.add(netParameter);
             // 上报新旧IP
             protocolService.onNetworkChanged(ipAddress, oldIpAddress);
-            LogUtils.i(TAG, "updateNet: onNetworkChanged");
+            LogUtil.i(TAG, "updateNet: onNetworkChanged");
         }
 
         if (!parameterCacheList.isEmpty()) {
             // 如果参数上报缓存不为空，向平台上报
             protocolService.onValueChange(parameterCacheList);
-            LogUtils.i(TAG, "updateNet: report parameters in parameterCacheList.");
+            LogUtil.i(TAG, "updateNet: report parameters in parameterCacheList.");
             parameterCacheList.clear();
         }
         SimpleDateFormat format = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
@@ -170,12 +170,12 @@ public class NetworkHandlerImpl implements NetworkHandler {
             while (enumerationNi.hasMoreElements()) {
                 NetworkInterface networkInterface = enumerationNi.nextElement();
                 String interfaceName = networkInterface.getDisplayName();
-                LogUtils.i(TAG, "网络名字" + interfaceName);
+                LogUtil.i(TAG, "网络名字" + interfaceName);
 
                 if ("ppp0".equals(interfaceName)) {
                     // PPPoE协议
                     // 更新数据库中的PPPoE账号，将参数加入上报缓存
-                    String pppoeAcount = PropertyUtils.getProperty("persist.sys.pppoeaccount",
+                    String pppoeAcount = PropertyUtil.getProperty("persist.sys.pppoeaccount",
                             "Unknow");
                     dbHandler.update("Device.X_CMCC_OTV.ServiceInfo.PPPoEID",
                             pppoeAcount);
@@ -199,11 +199,11 @@ public class NetworkHandlerImpl implements NetworkHandler {
                 return wlan0HostAddress;
             }
         } catch (SocketException e) {
-            LogUtils.e(TAG, "getClientIpAddress: something made mistake.");
+            LogUtil.e(TAG, "getClientIpAddress: something made mistake.");
             e.printStackTrace();
             return "";
         } catch (RemoteException e) {
-            LogUtils.e(TAG, "getClientIpAddress: something made mistake.");
+            LogUtil.e(TAG, "getClientIpAddress: something made mistake.");
             e.printStackTrace();
             return "";
         }

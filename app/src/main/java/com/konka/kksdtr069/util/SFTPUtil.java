@@ -21,9 +21,9 @@ import java.util.Iterator;
 import java.util.Properties;
 import java.util.Vector;
 
-public class SFTPUtils {
+public class SFTPUtil {
 
-    private String TAG = "SFTPUtils";
+    private String TAG = SFTPUtil.class.getSimpleName();
     private String host;
     private String username;
     private String password;
@@ -31,14 +31,14 @@ public class SFTPUtils {
     private ChannelSftp sftp = null;
     private Session sshSession = null;
 
-    public SFTPUtils(String host, String port, String username, String password) {
+    public SFTPUtil(String host, String port, String username, String password) {
         this.host = host;
         if (!TextUtils.isEmpty(port)) {
             this.port = Integer.parseInt(port);
         }
         this.username = username;
         this.password = password;
-        LogUtils.d(TAG, "sftp upload url = " + host + ":" + port + "\n"
+        LogUtil.d(TAG, "sftp upload url = " + host + ":" + port + "\n"
                 + "sftp username = " + username + "\n"
                 + "sftp password = " + password);
     }
@@ -61,10 +61,10 @@ public class SFTPUtils {
             if (channel != null) {
                 channel.connect();
             } else {
-                LogUtils.d(TAG, "channel connecting failed.");
+                LogUtil.d(TAG, "channel connecting failed.");
             }
             sftp = (ChannelSftp) channel;
-            LogUtils.d(TAG, "sftp connect success,sftp = " + sftp);
+            LogUtil.d(TAG, "sftp connect success,sftp = " + sftp);
         } catch (JSchException e) {
             e.printStackTrace();
         }
@@ -103,11 +103,11 @@ public class SFTPUtils {
         FileInputStream in = null;
         try {
             createDir(remotePath);
-            LogUtils.d(TAG, "creatDir:" + remotePath);
+            LogUtil.d(TAG, "creatDir:" + remotePath);
             File file = new File(localPath + localFileName);
             in = new FileInputStream(file);
             sftp.put(in, remoteFileName);
-            LogUtils.d(TAG, "upload file finish successfully");
+            LogUtil.d(TAG, "upload file finish successfully");
             return true;
         } catch (FileNotFoundException e) {
             e.printStackTrace();

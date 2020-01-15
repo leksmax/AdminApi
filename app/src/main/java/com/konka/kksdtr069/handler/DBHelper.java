@@ -1,11 +1,8 @@
 package com.konka.kksdtr069.handler;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-
-import com.konka.kksdtr069.util.LogUtils;
 
 public class DBHelper extends SQLiteOpenHelper {
 

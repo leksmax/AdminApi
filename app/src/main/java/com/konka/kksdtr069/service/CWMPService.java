@@ -6,7 +6,7 @@ import com.konka.kksdtr069.handler.SystemHandler;
 import com.konka.kksdtr069.handler.impl.FunctionHandlerImpl;
 import com.konka.kksdtr069.handler.impl.ParameterHandlerImpl;
 import com.konka.kksdtr069.handler.impl.SystemHandlerImpl;
-import com.konka.kksdtr069.util.LogUtils;
+import com.konka.kksdtr069.util.LogUtil;
 
 import net.sunniwell.cwmp.protocol.sdk.aidl.AppID;
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPDownloadRequest;
@@ -53,7 +53,7 @@ public class CWMPService extends ICWMPNativeService.Stub {
                     + "value :" + list.get(i).getValue() + "\n");
 
         }
-        LogUtils.d(TAG, stringBuilder.toString());
+        LogUtil.d(TAG, stringBuilder.toString());
         return list;
     }
 
@@ -72,7 +72,7 @@ public class CWMPService extends ICWMPNativeService.Stub {
                         + "value :" + list.get(i).getValue() + "\n");
             }
         }
-        LogUtils.d(TAG, stringBuilder.toString());
+        LogUtil.d(TAG, stringBuilder.toString());
         return list;
     }
 
@@ -92,7 +92,7 @@ public class CWMPService extends ICWMPNativeService.Stub {
                         + "value :" + list.get(i).getValue() + "\n");
             }
         }
-        LogUtils.d(TAG, stringBuilder.toString());
+        LogUtil.d(TAG, stringBuilder.toString());
         return list;
     }
 
@@ -104,7 +104,7 @@ public class CWMPService extends ICWMPNativeService.Stub {
     @Override
     public String getParameterValue(String name) throws RemoteException {
         String value = parameterHandler.getParameterValue(name);
-        LogUtils.d(TAG, "getParameterValue() result : " + "\n"
+        LogUtil.d(TAG, "getParameterValue() result : " + "\n"
                 + "name : " + name + "\n"
                 + "value : " + value + "\n");
         return value;
@@ -118,7 +118,7 @@ public class CWMPService extends ICWMPNativeService.Stub {
     @Override
     public int setParameterValue(String name, String value) throws RemoteException {
         int result = parameterHandler.setParameterValue(name, value);
-        LogUtils.d(TAG, "setParameterValue() result : " + "\n"
+        LogUtil.d(TAG, "setParameterValue() result : " + "\n"
                 + "name : " + name + "\n"
                 + "value : " + value + "\n"
                 + "set parameter result : " + result + "\n");
@@ -132,7 +132,7 @@ public class CWMPService extends ICWMPNativeService.Stub {
     @Override
     public CWMPParameter getParameter(String name) throws RemoteException {
         CWMPParameter parameter = parameterHandler.getParameter(name);
-        LogUtils.d(TAG, "getParameter() result : " + "\n"
+        LogUtil.d(TAG, "getParameter() result : " + "\n"
                 + "name : " + parameter.getName() + "\n"
                 + "value : " + parameter.getValue() + "\n");
         return parameter;
@@ -147,7 +147,7 @@ public class CWMPService extends ICWMPNativeService.Stub {
      */
     @Override
     public List<SetParameterValuesFault> setParameters(List<CWMPParameter> list) throws RemoteException {
-        LogUtils.d(TAG, "setParameters()");
+        LogUtil.d(TAG, "setParameters()");
         ArrayList<SetParameterValuesFault> faultList = new ArrayList<SetParameterValuesFault>();
         functionHandler.pingDiagnosis(list, mProtocolService);
         functionHandler.traceRouteDiagnosis(list,mProtocolService);
@@ -162,7 +162,7 @@ public class CWMPService extends ICWMPNativeService.Stub {
      */
     @Override
     public void reboot() {
-        LogUtils.d(TAG, "reboot()");
+        LogUtil.d(TAG, "reboot()");
         systemHandler.reboot();
     }
 
@@ -173,7 +173,7 @@ public class CWMPService extends ICWMPNativeService.Stub {
      */
     @Override
     public void factoryReset(boolean clearUserData) {
-        LogUtils.d(TAG, "factoryReset()");
+        LogUtil.d(TAG, "factoryReset()");
         systemHandler.FactoryReset();
     }
 
@@ -184,7 +184,7 @@ public class CWMPService extends ICWMPNativeService.Stub {
      */
     @Override
     public void download(CWMPDownloadRequest cwmpDownloadRequest) {
-        LogUtils.d(TAG, "download()");
+        LogUtil.d(TAG, "download()");
         systemHandler.download(cwmpDownloadRequest,mProtocolService);
     }
 
@@ -196,7 +196,7 @@ public class CWMPService extends ICWMPNativeService.Stub {
      */
     @Override
     public void onLogin(int type, boolean isSuccess) {
-        LogUtils.d(TAG, "onLogin()");
+        LogUtil.d(TAG, "onLogin()");
         systemHandler.onLogin(type, isSuccess);
     }
 
@@ -207,7 +207,7 @@ public class CWMPService extends ICWMPNativeService.Stub {
      */
     @Override
     public void uninstall(List<AppID> list) {
-        LogUtils.d(TAG, "uninstall()");
+        LogUtil.d(TAG, "uninstall()");
         systemHandler.appUninstall(list,mProtocolService);
     }
 

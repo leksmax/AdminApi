@@ -4,14 +4,11 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Parcel;
 import android.os.RemoteException;
-import android.util.Log;
 
 import com.konka.kksdtr069.base.BaseApplication;
 import com.konka.kksdtr069.constant.ParameterConstant;
 import com.konka.kksdtr069.handler.DBHandler;
-import com.konka.kksdtr069.util.LogUtils;
 
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPParameter;
 

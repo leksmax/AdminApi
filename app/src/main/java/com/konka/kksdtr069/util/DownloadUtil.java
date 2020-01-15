@@ -155,13 +155,13 @@ public class DownloadUtil {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    LogUtils.d(TAG, "doWork: begin download from " + url);
+                    LogUtil.d(TAG, "doWork: begin download from " + url);
                     Request request = new Request.Builder().url(url).build();
                     new OkHttpClient().newCall(request).enqueue(new Callback() {
                         @Override
                         public void onFailure(Call call, IOException e) {
                             e.printStackTrace();
-                            LogUtils.i(TAG, "download failed");
+                            LogUtil.i(TAG, "download failed");
                             mCallBack.onFailure(e.getMessage());
                         }
                         @Override
@@ -179,7 +179,7 @@ public class DownloadUtil {
                                 mCallBack.onSuccess();
                             } catch (Exception e) {
                                 e.printStackTrace();
-                                LogUtils.i(TAG, "download failed");
+                                LogUtil.i(TAG, "download failed");
                                 mCallBack.onFailure(e.getMessage());
                             } finally {
                                 if (bufferedSink != null) {

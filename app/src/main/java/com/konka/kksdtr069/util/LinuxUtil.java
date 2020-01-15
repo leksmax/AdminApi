@@ -1,8 +1,6 @@
 package com.konka.kksdtr069.util;
 
 import android.content.Context;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 import android.util.Log;
 
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPPingRequest;
@@ -19,7 +17,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,9 +25,9 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class LinuxUtils {
+public class LinuxUtil {
 
-    public static final String TAG = LinuxUtils.class.getSimpleName();
+    public static final String TAG = LinuxUtil.class.getSimpleName();
 
     /**
      * ping诊断
@@ -99,10 +96,10 @@ public class LinuxUtils {
             while ((line = errorReader.readLine()) != null) {
                 errorMsg.append(line);
             }
-            LogUtils.d(TAG, "execute command :" + command + "\n"
+            LogUtil.d(TAG, "execute command :" + command + "\n"
                     + "status : " + status + "\n");
             if (errorMsg != null && !(errorMsg.toString().isEmpty())) {
-                LogUtils.d(TAG, errorMsg.toString());
+                LogUtil.d(TAG, errorMsg.toString());
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -262,19 +259,19 @@ public class LinuxUtils {
             successReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String line = null;
             while ((line = successReader.readLine()) != null) {
-                LogUtils.i(TAG, "exe line = " + line);
+                LogUtil.i(TAG, "exe line = " + line);
                 list.add(line);
             }
 
             errorMsg = new StringBuilder();
             errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-            LogUtils.i(TAG, "exe cmd : " + cmd + "\n"
+            LogUtil.i(TAG, "exe cmd : " + cmd + "\n"
                     + "status : " + status);
             while ((line = errorReader.readLine()) != null) {
                 errorMsg.append(line);
             }
             if (!(errorMsg.toString().isEmpty())) {
-                LogUtils.d(TAG, "error msg : " + errorMsg.toString());
+                LogUtil.d(TAG, "error msg : " + errorMsg.toString());
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -325,7 +322,7 @@ public class LinuxUtils {
             }
             result = new String(baos.toByteArray());
             status = process.waitFor();
-            LogUtils.i(TAG, "execCommand: " + Arrays.toString(command)
+            LogUtil.i(TAG, "execCommand: " + Arrays.toString(command)
                     .replace(",", " ")
                     + " result = " + result + " status = " + status);
         } catch (Exception e) {
@@ -352,7 +349,7 @@ public class LinuxUtils {
         List<String> apkList = exeCommand("ls -l data/data");
         for (String apkInform : apkList) {
             String[] app = apkInform.split(" ");
-            LogUtils.d(TAG, "apk name = " + app[app.length - 1]);
+            LogUtil.d(TAG, "apk name = " + app[app.length - 1]);
             if (app[app.length - 1].equals(appName)) {
                 return true;
             }
@@ -381,7 +378,7 @@ public class LinuxUtils {
             }
             result = new String(baos.toByteArray());
             status = process.waitFor();
-            LogUtils.i(TAG, "execCommand: " + Arrays.toString(command)
+            LogUtil.i(TAG, "execCommand: " + Arrays.toString(command)
                     .replace(",", " ")
                     + " result = " + result + " status = " + status);
         } catch (Exception e) {
@@ -428,7 +425,7 @@ public class LinuxUtils {
     public static String getPacketCaptureName() {
         SimpleDateFormat sdformat = new SimpleDateFormat("yyyyMMddHHmmss");
         String date = sdformat.format(new Date());
-        String fileName = PropertyUtils.getProperty("ro.mac")
+        String fileName = PropertyUtil.getProperty("ro.mac")
                 .replace(":", "") + "_" + date + ".pcap";
         return fileName;
     }

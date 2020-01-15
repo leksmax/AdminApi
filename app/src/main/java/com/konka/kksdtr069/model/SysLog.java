@@ -2,7 +2,7 @@ package com.konka.kksdtr069.model;
 
 import android.text.TextUtils;
 
-import com.konka.kksdtr069.util.PropertyUtils;
+import com.konka.kksdtr069.util.PropertyUtil;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -61,7 +61,7 @@ public class SysLog {
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyMMddHHmmss");
         String date = sdf.format(new Date());
-        String sfileName = PropertyUtils.getProperty("ro.mac").replace(":", "")
+        String sfileName = PropertyUtil.getProperty("ro.mac").replace(":", "")
                 + "_" + date + "log";
 
         this.remotePath = "/";

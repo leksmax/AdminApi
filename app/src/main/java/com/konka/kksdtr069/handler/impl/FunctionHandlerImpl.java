@@ -13,13 +13,11 @@ import com.kkbasic.MsgCallBack;
 import com.kkbasic.Tcpdump;
 import com.konka.kksdtr069.base.BaseApplication;
 import com.konka.kksdtr069.handler.FunctionHandler;
-import com.konka.kksdtr069.model.SysLog;
-import com.konka.kksdtr069.util.LinuxUtils;
-import com.konka.kksdtr069.util.LogUtils;
+import com.konka.kksdtr069.util.LinuxUtil;
+import com.konka.kksdtr069.util.LogUtil;
 import com.konka.kksdtr069.util.NetMeasureUtils;
-import com.konka.kksdtr069.util.PropertyUtils;
-import com.konka.kksdtr069.util.SFTPUtils;
-import com.konka.kksdtr069.util.UploadLogUtils;
+import com.konka.kksdtr069.util.PropertyUtil;
+import com.konka.kksdtr069.util.SFTPUtil;
 
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPParameter;
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPPingRequest;
@@ -34,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import com.konka.kksdtr069.util.SyslogUtil;
 
 public class FunctionHandlerImpl implements FunctionHandler {
 
@@ -50,7 +49,7 @@ public class FunctionHandlerImpl implements FunctionHandler {
     private FunctionHandlerImpl() {
         context = BaseApplication.instance.getApplicationContext();
         dbHandler = DBHandlerImpl.getInstance();
-        LogUtils.d(TAG, "new DBHandlerImpl for FunctionHandlerImpl");
+        LogUtil.d(TAG, "new DBHandlerImpl for FunctionHandlerImpl");
     }
 
     public static FunctionHandlerImpl getInstance() {
@@ -91,7 +90,7 @@ public class FunctionHandlerImpl implements FunctionHandler {
         if (!pingHost.isEmpty()) {
             final CWMPPingRequest request = initCWMPPingRequest(pingHost, pingState, pingRepeat,
                     pingTimeout, pingDBS, pingDSCP);
-            LogUtils.d(TAG, "ping request : " + "\n"
+            LogUtil.d(TAG, "ping request : " + "\n"
                     + "pingDiagnosticsState = " + request.getDiagnosticsState() + "\n"
                     + "pingHost = " + request.getHost() + "\n"
                     + "pingNumberOfRepetitions = " + request.getNumberOfRepetitions() + "\n"
@@ -101,13 +100,13 @@ public class FunctionHandlerImpl implements FunctionHandler {
             new Thread() {
                 @Override
                 public void run() {
-                    CWMPPingResult pingResult = LinuxUtils.ping(request);
+                    CWMPPingResult pingResult = LinuxUtil.ping(request);
                     if (pingResult.getMaximumResponseTime() == 0
                             || pingResult.getMinimumResponseTime() == 0
                             || pingResult.getAverageResponseTime() == 0) {
                         pingResult.setDiagnosticsState("Failure");
                     }
-                    LogUtils.d(TAG, "exe command : ping" +
+                    LogUtil.d(TAG, "exe command : ping" +
                             " -Q " + request.getDSCP() +
                             " -s " + request.getDataBlockSize() +
                             " -w " + request.getTimeout() +
@@ -171,20 +170,20 @@ public class FunctionHandlerImpl implements FunctionHandler {
         }
 
         if (!traceHost.isEmpty()) {
-            LinuxUtils.varifyFile(context, "traceroute");
+            LinuxUtil.varifyFile(context, "traceroute");
             final CWMPTraceRouteRequest request = initCWMPTraceRouteRequest(traceHost, traceState,
                     traceMHC, traceTimeout, traceDBS, traceDSCP);
             new Thread() {
                 @Override
                 public void run() {
-                    LogUtils.d(TAG, "start trace route");
-                    CWMPTraceRouteResult traceResult = LinuxUtils.traceRoute(request);
+                    LogUtil.d(TAG, "start trace route");
+                    CWMPTraceRouteResult traceResult = LinuxUtil.traceRoute(request);
                     if (traceResult.getNumberOfRouteHops() == 0 || traceResult.getResponseTime() == 0) {
                         traceResult.setDiagnosticsState("Failure");
                     } else {
                         traceResult.setDiagnosticsState("Complete");
                     }
-                    LogUtils.d(TAG, "exe command : trace route" +
+                    LogUtil.d(TAG, "exe command : trace route" +
                             " -m " + request.getMaxHopCount() +
                             " -w " + request.getTimeout() +
                             " " + request.getHost() + " " + request.getDataBlockSize() + "\n"
@@ -312,7 +311,7 @@ public class FunctionHandlerImpl implements FunctionHandler {
             }
         }
         if ("2".equals(packetState)) {
-            LogUtils.d(TAG, String.format("packetState = %s" + "\n" +
+            LogUtil.d(TAG, String.format("packetState = %s" + "\n" +
                             "packetDuration = %s" + "\n" +
                             "packetIP = %s" + "\n" +
                             "packetPort = %s" + "\n" +
@@ -326,12 +325,12 @@ public class FunctionHandlerImpl implements FunctionHandler {
                     packetUploadURL,
                     packetUsername,
                     packetPassword));
-            LogUtils.d(TAG, "Received a crawl network packet request");
+            LogUtil.d(TAG, "Received a crawl network packet request");
 
-            LinuxUtils.removeSubFile("/data/data/com.konka.kksdtr069/cache/pcap/");
+            LinuxUtil.removeSubFile("/data/data/com.konka.kksdtr069/cache/pcap/");
             SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
             String date = sdf.format(new Date());
-            final String fileName = PropertyUtils.getProperty("ro.mac")
+            final String fileName = PropertyUtil.getProperty("ro.mac")
                     .replace(":", "") + "_" + date + "" + ".pcap";
             dbHandler.update("Device.X_00E0FC.PacketCapture.State", "3");
 
@@ -365,30 +364,30 @@ public class FunctionHandlerImpl implements FunctionHandler {
                         dbHandler.update("Device.X_00E0FC.PacketCapture.State", "5");
                         Thread.sleep(1000);
                         pacgStatus = 1;
-                        LogUtils.d(TAG, "tcpdump finish");
+                        LogUtil.d(TAG, "tcpdump finish");
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
-                                LogUtils.d(TAG, "start upload file");
-                                SFTPUtils sftpUtils = new SFTPUtils(finalPacketIP, finalPacketPort,
+                                LogUtil.d(TAG, "start upload file");
+                                SFTPUtil sftpUtil = new SFTPUtil(finalPacketIP, finalPacketPort,
                                         finalPacketUsername, finalPacketPassword);
-                                sftpUtils.connect();
-                                LogUtils.d(TAG, "sftp connected");
-                                Boolean flag = sftpUtils.uploadFile(finalUploadPath, fileName,
+                                sftpUtil.connect();
+                                LogUtil.d(TAG, "sftp connected");
+                                Boolean flag = sftpUtil.uploadFile(finalUploadPath, fileName,
                                         "/data/data/com.konka.kksdtr069/cache/pcap/", fileName);
-                                LogUtils.d(TAG, "upload file finish");
+                                LogUtil.d(TAG, "upload file finish");
                                 try {
                                     if (flag == true) {
                                         dbHandler.update("Device.X_00E0FC.PacketCapture.State",
                                                 "6");
                                         dbHandler.update("Device.X_00E0FC.PacketCapture.State",
                                                 "1");
-                                        sftpUtils.disconnect();
-                                        LogUtils.d(TAG, "upload packet success");
+                                        sftpUtil.disconnect();
+                                        LogUtil.d(TAG, "upload packet success");
                                     } else {
                                         dbHandler.update("Device.X_00E0FC.PacketCapture.State",
                                                 "7");
-                                        LogUtils.d(TAG, "upload packet failed");
+                                        LogUtil.d(TAG, "upload packet failed");
                                     }
                                 } catch (RemoteException e) {
                                     e.printStackTrace();
@@ -405,7 +404,7 @@ public class FunctionHandlerImpl implements FunctionHandler {
             });
 
             Tcpdump tcpdump = Tcpdump.getInstance();
-            LogUtils.d(TAG, "Crawling network packet");
+            LogUtil.d(TAG, "Crawling network packet");
             if (pacgStatus != 1) {
                 tcpdump.stop();
             }
@@ -437,6 +436,7 @@ public class FunctionHandlerImpl implements FunctionHandler {
         String syslogContinueTime = "";// 日志输出持续时间，单位：分钟
         String syslogTimer = "";// SFTP日志自动上传定时器值。单位：秒
         String syslogFTPServer = "";// FTP格式的URL，sftp://ftpuser:111111@192.168.0.8
+        SyslogUtil syslog = null;
 
         for (CWMPParameter mCWMPParameter : list) {
             dbHandler.update(mCWMPParameter);
@@ -468,7 +468,7 @@ public class FunctionHandlerImpl implements FunctionHandler {
                 syslogFTPServer = mCWMPParameter.getValue();
             }
         }
-        LogUtils.d(TAG, "sys log : " + "\n"
+        LogUtil.d(TAG, "sys log : " + "\n"
                 + "SysLogOutputType = " + syslogOutputType + "\n"
                 + "SysLogLevel = " + syslogLevel + "\n"
                 + "SysLogType = " + syslogType + "\n"
@@ -476,27 +476,23 @@ public class FunctionHandlerImpl implements FunctionHandler {
                 + "SysLogStartTime = " + syslogStartTime + "\n"
                 + "SysLogContinueTime = " + syslogContinueTime + "\n"
                 + "SysLogFTPServer = " + syslogFTPServer + "\n");
-        UploadLogUtils uploadLogUtils = UploadLogUtils.getInstance();
         if (!isUploadSysLog(syslogOutputType)) {
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             try {
-                SysLog sysLog = new SysLog(Integer.parseInt(syslogOutputType),
+                syslog = new SyslogUtil(Integer.parseInt(syslogOutputType),
                         Integer.parseInt(syslogLevel),
                         Integer.parseInt(syslogType),
                         syslogServer,
                         format.parse(syslogStartTime),
                         Integer.parseInt(syslogContinueTime),
                         syslogFTPServer);
-                LogUtils.d(TAG, "captureAndUploadLog() start");
-                uploadLogUtils.start(sysLog);
-                LogUtils.d(TAG, "captureAndUploadLog() finish");
-            } catch (ParseException e) {
+                syslog.start();
+            } catch ( ParseException e ) {
                 e.printStackTrace();
             }
         } else {
-            if (uploadLogUtils != null) {
-                uploadLogUtils.stopSendToSyslogServer();
-                LogUtils.d(TAG, "captureAndUploadLog() stop send syslog to server");
+            if (syslog != null) {
+                syslog.stopSendToSyslogServer();
             }
         }
     }
@@ -526,20 +522,20 @@ public class FunctionHandlerImpl implements FunctionHandler {
             Intent intent = new Intent();
             intent.setAction("com.android.settings");
             if ("0".equals(wifiEnable)) {
-                LogUtils.d(TAG, "set parameters : make wifi enable");
+                LogUtil.d(TAG, "set parameters : make wifi enable");
                 intent.putExtra("WifiEnable", true);
             } else {
-                LogUtils.d(TAG, "set parameters : make wifi disable");
+                LogUtil.d(TAG, "set parameters : make wifi disable");
                 intent.putExtra("WifiEnable", false);
             }
-            LogUtils.d(TAG, "WifiEnable() start");
+            LogUtil.d(TAG, "WifiEnable() start");
             context.sendBroadcast(intent);
             try {
                 Thread.sleep(2500);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            LogUtils.d(TAG, "WifiEnable() finish");
+            LogUtil.d(TAG, "WifiEnable() finish");
             WifiManager manager = (WifiManager) context.getApplicationContext().getSystemService
                     (Context.WIFI_SERVICE);
             if ((!"0".equals(wifiEnable)) && manager.isWifiEnabled()) {
@@ -551,7 +547,7 @@ public class FunctionHandlerImpl implements FunctionHandler {
                             parameterCacheList.remove(parameter);
                             parameter.setValue("0");
                             dbHandler.update(parameter);
-                            LogUtils.d(TAG, "the WiFi closed commend is issued" + "\n" +
+                            LogUtil.d(TAG, "the WiFi closed commend is issued" + "\n" +
                                     "but the user is using the shutdown failure" + "\n" +
                                     "remove the parameter change report and restore the open status");
                         }

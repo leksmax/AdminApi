@@ -200,8 +200,8 @@ public class NetMeasureUtils {
         } else {
             Log.i(TAG, "type: new");
             cityCode = Integer.toString(NetConstant.AREA_CODE.get(
-                    PropertyUtils.getProperty("persist.sys.area")));
-            terminalNo = PropertyUtils.getProperty("ro.mac").replace(":", "");
+                    PropertyUtil.getProperty("persist.sys.area")));
+            terminalNo = PropertyUtil.getProperty("ro.mac").replace(":", "");
             userIP = getClientIP();
             RequestURL requestURL = new RequestURL(account, cityCode, bandwidth,
                     terminalType, terminalNo, userIP);

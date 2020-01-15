@@ -8,8 +8,8 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
-import com.konka.kksdtr069.util.LogUtils;
-import com.konka.kksdtr069.util.PropertyUtils;
+import com.konka.kksdtr069.util.LogUtil;
+import com.konka.kksdtr069.util.PropertyUtil;
 
 public class Tr069Provider extends ContentProvider {
 
@@ -42,14 +42,14 @@ public class Tr069Provider extends ContentProvider {
     }
 
     public boolean onCreate() {
-        LogUtils.i(TAG, "provider onCreate");
+        LogUtil.i(TAG, "provider onCreate");
         db = new DBHelper(getContext()).getWritableDatabase();
         initData();
         return true;
     }
 
     private void initData() {
-        LogUtils.d(TAG, "initData");
+        LogUtil.d(TAG, "initData");
         int ret = -100;
         String prop, dname;
 
@@ -59,14 +59,14 @@ public class Tr069Provider extends ContentProvider {
 
             String propValue = "";
             if (dname.contains("Device.X_CMCC_OTV.ServiceInfo.UserID")) {
-                propValue = PropertyUtils.getProperty(prop).replace(":", "").toUpperCase();
+                propValue = PropertyUtil.getProperty(prop).replace(":", "").toUpperCase();
             } else {
-                propValue = PropertyUtils.getProperty(prop);
+                propValue = PropertyUtil.getProperty(prop);
             }
             ContentValues cv = new ContentValues();
             cv.put("value", propValue);
             ret = update(Uri.parse(URI_AUTH), cv, "name=?", new String[]{dname});
-            LogUtils.i(TAG, "update:{" + dname + "} ret=" + ret);
+            LogUtil.i(TAG, "update:{" + dname + "} ret=" + ret);
         }
         updateDb("Device.ManagementServer.ConnectionRequestUsername", "cpe");
         updateDb("Device.ManagementServer.ConnectionRequestPassword", "cpe");
@@ -81,46 +81,46 @@ public class Tr069Provider extends ContentProvider {
 
     private void updateDb(String dname, String dvalue) {
         // TODO Auto-generated method stub
-        LogUtils.i(TAG, "updateDb");
+        LogUtil.i(TAG, "updateDb");
         int ret = -100;
 
         ContentValues cv = new ContentValues();
         cv.put("value", dvalue);
         ret = update(Uri.parse(URI_AUTH), cv, "name=?", new String[]{dname});
-        LogUtils.i(TAG, "update:{" + dname + "} ret=" + ret);
+        LogUtil.i(TAG, "update:{" + dname + "} ret=" + ret);
     }
 
     private void updateDb(String dname, boolean dvalue) {
         // TODO Auto-generated method stub
-        LogUtils.i(TAG, "updateDb");
+        LogUtil.i(TAG, "updateDb");
         int ret = -100;
 
         ContentValues cv = new ContentValues();
         cv.put("value", dvalue);
         ret = update(Uri.parse(URI_AUTH), cv, "name=?", new String[]{dname});
-        LogUtils.i(TAG, "update:{" + dname + "} ret=" + ret);
+        LogUtil.i(TAG, "update:{" + dname + "} ret=" + ret);
     }
 
     private void updateDb(String dname, int dvalue) {
         // TODO Auto-generated method stub
-        LogUtils.i(TAG, "updateDb");
+        LogUtil.i(TAG, "updateDb");
         int ret = -100;
 
         ContentValues cv = new ContentValues();
         cv.put("value", dvalue);
         ret = update(Uri.parse(URI_AUTH), cv, "name=?", new String[]{dname});
-        LogUtils.i(TAG, "update:{" + dname + "} ret=" + ret);
+        LogUtil.i(TAG, "update:{" + dname + "} ret=" + ret);
     }
 
 
     public String getType(Uri uri) {
-        LogUtils.i(TAG, "getType(" + uri.toString() + ")");
+        LogUtil.i(TAG, "getType(" + uri.toString() + ")");
         return null;
     }
 
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
                         String sortOrder) {
-        LogUtils.i(TAG, "query(" + uri.toString() + ")");
+        LogUtil.i(TAG, "query(" + uri.toString() + ")");
         String select = null;
         String[] selectArgs = null;
         String table = (String) uri.getPathSegments().get(0);
@@ -139,16 +139,16 @@ public class Tr069Provider extends ContentProvider {
     }
 
     public Uri insert(Uri uri, ContentValues values) {
-        LogUtils.i(TAG, "insert(" + uri.toString() + ")");
+        LogUtil.i(TAG, "insert(" + uri.toString() + ")");
         long r = -1;
         String table = (String) uri.getPathSegments().get(0);
         r = db.insert(table, null, values);
-        LogUtils.i(TAG, "insert " + r);
+        LogUtil.i(TAG, "insert " + r);
         return Uri.withAppendedPath(uri, r + "");
     }
 
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        LogUtils.i(TAG, "delete(" + uri.toString() + ")");
+        LogUtil.i(TAG, "delete(" + uri.toString() + ")");
         String select = null;
         String[] selectArgs = null;
         String table = (String) uri.getPathSegments().get(0);
@@ -175,9 +175,9 @@ public class Tr069Provider extends ContentProvider {
                 cv.put(COLUMN_NAME, name);
             }
         }
-        LogUtils.i(TAG, "update(" + uri.toString() + ")");
-        LogUtils.i(TAG, "name=[" + name + "]");
-        LogUtils.d(TAG, "value=[" + value + "]");
+        LogUtil.i(TAG, "update(" + uri.toString() + ")");
+        LogUtil.i(TAG, "name=[" + name + "]");
+        LogUtil.d(TAG, "value=[" + value + "]");
         String select = null;
         String selectArgs[] = null;
         String table = (String) uri.getPathSegments().get(0);
@@ -208,7 +208,7 @@ public class Tr069Provider extends ContentProvider {
         tmp.append("/");
         tmp.append(name.toString());
         Uri uri_tmp = Uri.parse(tmp.toString());
-        LogUtils.i(TAG, "uri_tmp=[" + uri_tmp + "]");
+        LogUtil.i(TAG, "uri_tmp=[" + uri_tmp + "]");
         Cursor mCursor = query(uri_tmp, null, null, null, null);
         if (mCursor != null) {
             if (!mCursor.moveToFirst()) {
@@ -218,7 +218,7 @@ public class Tr069Provider extends ContentProvider {
             mCursor.close();
             return true;
         }
-        LogUtils.e(TAG, "query failed!! ");
+        LogUtil.e(TAG, "query failed!! ");
         return false;
     }
 

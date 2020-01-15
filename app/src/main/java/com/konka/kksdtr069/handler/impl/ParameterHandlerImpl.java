@@ -4,7 +4,7 @@ import android.net.Uri;
 import android.os.RemoteException;
 
 import com.konka.kksdtr069.handler.ParameterHandler;
-import com.konka.kksdtr069.util.LogUtils;
+import com.konka.kksdtr069.util.LogUtil;
 
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPParameter;
 
@@ -22,7 +22,7 @@ public class ParameterHandlerImpl implements ParameterHandler {
 
     private ParameterHandlerImpl() {
         dbHandler = DBHandlerImpl.getInstance();
-        LogUtils.d(TAG, "new DBhandlerImpl for ParameterHandlerImpl");
+        LogUtil.d(TAG, "new DBhandlerImpl for ParameterHandlerImpl");
     }
 
     public static ParameterHandlerImpl getInstance() {
@@ -62,10 +62,10 @@ public class ParameterHandlerImpl implements ParameterHandler {
         if (name.equals("Device.LAN.IPAddress") || name.equals("Device.LAN.DefaultGateway") ||
                 name.equals("Device.LAN.DNSServers2")) {
             String addressingType = dbHandler.queryByNameForString("Device.LAN.AddressingType");
-            LogUtils.d(TAG, "addressing type = " + addressingType);
+            LogUtil.d(TAG, "addressing type = " + addressingType);
             if (addressingType.equals("STATIC")) {
                 result = dbHandler.update(name, value);
-                LogUtils.d(TAG, "update static ip result = " + result);
+                LogUtil.d(TAG, "update static ip result = " + result);
             }
         } else {
             result = dbHandler.update(name, value);

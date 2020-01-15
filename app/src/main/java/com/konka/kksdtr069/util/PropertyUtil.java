@@ -4,7 +4,7 @@ import android.annotation.SuppressLint;
 
 import java.lang.reflect.Method;
 
-public class PropertyUtils {
+public class PropertyUtil {
 
     /**
      * 获取系统属性key对应的值
