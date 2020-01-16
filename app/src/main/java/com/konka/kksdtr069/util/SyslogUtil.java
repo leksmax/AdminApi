@@ -127,9 +127,11 @@ public class SyslogUtil {
         String mac = PropertyUtil.getProperty("ro.mac", "unknowmac").replace(":", "").toUpperCase();
         String tag = PropertyUtil.getProperty("ro.product.model", "UnknowModel") + "_" +
                 PropertyUtil.getProperty("ro.build.version.incremental", "UnknowVersion");
-        String PRI = String.valueOf(LogType * 8 + LogLevel);
-        if ("0".equals(PRI)) {
+        String PRI = "";
+        if (LogType == 0 || LogLevel == 0) {
             PRI = "135";
+        }else{
+            PRI = String.valueOf(LogType * 8 + LogLevel);
         }
         String level = "";
         if (LogLevel == LEVEL_ALL) {
@@ -227,7 +229,7 @@ public class SyslogUtil {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                //创建客户端的DatagramSocket对象,使用UDP协议传输syslog日志
+                // 创建客户端的DatagramSocket对象,使用UDP协议传输syslog日志
                 DatagramSocket ds = null;
                 BufferedReader br = null;
                 try {
@@ -238,7 +240,7 @@ public class SyslogUtil {
                     Log.d(TAG, "sendToSyslogServer() start loop");
                     while ((line = br.readLine()) != null) {
                         byte[] b = (line).getBytes("UTF-8");
-                        //将字节数组的数据放入数据包并发送
+                        // 将字节数组的数据放入数据包并发送
                         dp = new DatagramPacket(b, b.length,
                                 InetAddress.getByName(SyslogServerIP),
                                 Integer.parseInt(SyslogServerPort));
