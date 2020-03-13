@@ -11,9 +11,12 @@ import android.util.Log;
 
 import androidx.annotation.Nullable;
 
+import com.konka.kksdtr069.handler.DBHandler;
+import com.konka.kksdtr069.handler.impl.DBHandlerImpl;
 import com.konka.kksdtr069.handler.impl.NetworkHandlerImpl;
 import com.konka.kksdtr069.receiver.NetObserver;
 import com.konka.kksdtr069.service.CWMPService;
+import com.konka.kksdtr069.util.PropertyUtil;
 
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPParameter;
 import net.sunniwell.cwmp.protocol.sdk.aidl.ICWMPProtocolService;
@@ -76,7 +79,8 @@ public class Tr069Client extends Service {
         init();
     }
 
-    public void init() {
+    private void init() {
+        formatSoftwareVersion();
         parameterCacheList = new ArrayList<>();
         networkHandler = NetworkHandlerImpl.getInstance();
         bindCWMPService();
@@ -84,13 +88,24 @@ public class Tr069Client extends Service {
         netObserver.registerNetReceiver();
     }
 
-    public void bindCWMPService() {
+    private void formatSoftwareVersion() {
+        DBHandler dbHandler = DBHandlerImpl.getInstance();
+        String sfversion = PropertyUtil.getProperty("ro.build.version.incremental");
+        sfversion = PropertyUtil.formatSoftwareVersion(sfversion);
+        try {
+            dbHandler.update("Device.DeviceInfo.SoftwareVersion", sfversion);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void bindCWMPService() {
         Log.d(TAG, "bindCWMPService() bind cwmp service");
         Intent service = new Intent("net.sunniwell.action.START_CWMP_SERVICE");
         getApplication().bindService(service, mConnection, Context.BIND_AUTO_CREATE);
     }
 
-    public void initNativeService() throws RemoteException, InterruptedException {
+    private void initNativeService() throws RemoteException, InterruptedException {
         Thread.sleep(2 * 1000);
         // 提供本地接口服务对象给朝歌中间件
         mProtocolService.setNativeService(new CWMPService(mProtocolService));
