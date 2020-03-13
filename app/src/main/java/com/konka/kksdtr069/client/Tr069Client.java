@@ -16,6 +16,7 @@ import com.konka.kksdtr069.handler.impl.DBHandlerImpl;
 import com.konka.kksdtr069.handler.impl.NetworkHandlerImpl;
 import com.konka.kksdtr069.receiver.NetObserver;
 import com.konka.kksdtr069.service.CWMPService;
+import com.konka.kksdtr069.util.LogUtil;
 import com.konka.kksdtr069.util.PropertyUtil;
 
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPParameter;
@@ -80,23 +81,11 @@ public class Tr069Client extends Service {
     }
 
     private void init() {
-        formatSoftwareVersion();
         parameterCacheList = new ArrayList<>();
         networkHandler = NetworkHandlerImpl.getInstance();
         bindCWMPService();
         netObserver = NetObserver.getInstance(mProtocolService);
         netObserver.registerNetReceiver();
-    }
-
-    private void formatSoftwareVersion() {
-        DBHandler dbHandler = DBHandlerImpl.getInstance();
-        String sfversion = PropertyUtil.getProperty("ro.build.version.incremental");
-        sfversion = PropertyUtil.formatSoftwareVersion(sfversion);
-        try {
-            dbHandler.update("Device.DeviceInfo.SoftwareVersion", sfversion);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
     }
 
     private void bindCWMPService() {

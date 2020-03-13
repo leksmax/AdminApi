@@ -5,6 +5,7 @@ import android.os.RemoteException;
 
 import com.konka.kksdtr069.handler.ParameterHandler;
 import com.konka.kksdtr069.util.LogUtil;
+import com.konka.kksdtr069.util.PropertyUtil;
 
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPParameter;
 
@@ -43,6 +44,10 @@ public class ParameterHandlerImpl implements ParameterHandler {
 
     @Override
     public List<CWMPParameter> getInformParameters() throws RemoteException {
+        // 升级完成之后，数据进行初始化对软件版本号进行规划化显示
+        String sfversion = PropertyUtil.getProperty("ro.build.version.incremental");
+        sfversion = PropertyUtil.formatSoftwareVersion(sfversion);
+        dbHandler.update("Device.DeviceInfo.SoftwareVersion", sfversion);
         return dbHandler.queryInformParameters();
     }
 
