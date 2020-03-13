@@ -10,6 +10,7 @@ import com.konka.kksdtr069.handler.SystemHandler;
 import com.konka.kksdtr069.util.DownloadUtil;
 import com.konka.kksdtr069.util.LinuxUtil;
 import com.konka.kksdtr069.util.LogUtil;
+import com.konka.kksdtr069.util.PropertyUtil;
 
 import net.sunniwell.cwmp.protocol.sdk.aidl.AppID;
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPDownloadRequest;
@@ -80,9 +81,13 @@ public class SystemHandlerImpl implements SystemHandler {
     @Override
     public void download(CWMPDownloadRequest request, ICWMPProtocolService protocolService) {
         LogUtil.d(TAG, "download type : " + request.getType() + "\n" +
-                " url : " + request.getUrl() + "\n" +
+                "平台下发的url : " + request.getUrl() + "\n" +
                 "commandKey : " + request.getCommandKey() + "\n" +
-                "file_md5 : " + request.getMd5());
+                "file_md5 : " + request.getMd5() + "\n" +
+                "is silent upgrade: " + request.isSilent() + "\n" +
+                "is force upgrade: " + request.isForce());
+        request.setUrl("http://10.88.188.61:5000/updateandmd5.zip");
+        LogUtil.d(TAG, "测试所用的URL：" + request.getUrl());
         Intent intent = new Intent();
         intent.putExtra("type", request.getType());
         intent.putExtra("update_url", request.getUrl());
