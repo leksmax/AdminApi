@@ -86,14 +86,11 @@ public class SystemHandlerImpl implements SystemHandler {
                 "file_md5 : " + request.getMd5() + "\n" +
                 "is silent upgrade: " + request.isSilent() + "\n" +
                 "is force upgrade: " + request.isForce());
-        request.setUrl("http://10.88.188.61:5000/updateandmd5.zip");
-        LogUtil.d(TAG, "测试所用的URL：" + request.getUrl());
         Intent intent = new Intent();
         intent.putExtra("type", request.getType());
         intent.putExtra("update_url", request.getUrl());
         intent.putExtra("commandKey", request.getCommandKey());
         intent.putExtra("file_md5", request.getMd5());
-
         final CWMPDownloadResult result = new CWMPDownloadResult();
         result.setType(request.getType());
         result.setCommandKey(request.getCommandKey());
