@@ -1,13 +1,19 @@
 package com.konka.kksdtr069.handler.impl;
 
+import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.RemoteException;
 
+import com.konka.kksdtr069.base.BaseApplication;
 import com.konka.kksdtr069.handler.ParameterHandler;
 import com.konka.kksdtr069.util.LogUtil;
 import com.konka.kksdtr069.util.PropertyUtil;
 
+import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPDownloadRequest;
+import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPDownloadResult;
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPParameter;
+import net.sunniwell.cwmp.protocol.sdk.aidl.ICWMPProtocolService;
 
 import java.util.List;
 
@@ -44,10 +50,8 @@ public class ParameterHandlerImpl implements ParameterHandler {
 
     @Override
     public List<CWMPParameter> getInformParameters() throws RemoteException {
-        // 升级完成之后，数据进行初始化对软件版本号进行规划化显示
-        String sfversion = PropertyUtil.getProperty("ro.build.version.incremental");
-        sfversion = PropertyUtil.formatSoftwareVersion(sfversion);
-        dbHandler.update("Device.DeviceInfo.SoftwareVersion", sfversion);
+        updateSoftwareVersionDisplay();
+        isTransferCompleted();
         return dbHandler.queryInformParameters();
     }
 
@@ -77,5 +81,27 @@ public class ParameterHandlerImpl implements ParameterHandler {
         }
         return result;
 
+    }
+
+    private void isTransferCompleted() {
+        // 广播升级的结果
+        String sfversion = PropertyUtil.getProperty("ro.build.version.incremental");
+        Context context = BaseApplication.instance.getApplicationContext();
+        Intent intent = new Intent();
+        intent.setAction("android.intent.action.TRANSFER_COMPLETED");
+        if ("1.1.20".equals(sfversion)) {
+            intent.putExtra("isTransferCompleted", "true");
+        } else {
+            intent.putExtra("isTransferCompleted", "false");
+        }
+        context.sendBroadcast(intent);
+        LogUtil.d(TAG, "send if transfer completed broadcast");
+    }
+
+    private void updateSoftwareVersionDisplay() throws RemoteException {
+        // 升级完成之后，数据进行初始化对软件版本号进行规划化显示
+        String sfversion = PropertyUtil.getProperty("ro.build.version.incremental");
+        sfversion = PropertyUtil.formatSoftwareVersion(sfversion);
+        dbHandler.update("Device.DeviceInfo.SoftwareVersion", sfversion);
     }
 }

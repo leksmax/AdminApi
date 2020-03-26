@@ -25,6 +25,9 @@ import okio.Sink;
 
 public class DownloadUtil {
 
+    public static final int TRANSFER_SUCCESS = 0;
+    public static final int TRANSFER_FAILURE = 1;
+
     private static DownloadUtil downloadUtil;
     private final OkHttpClient okHttpClient;
     private List<Call> calls;
@@ -164,6 +167,7 @@ public class DownloadUtil {
                             LogUtil.i(TAG, "download failed");
                             mCallBack.onFailure(e.getMessage());
                         }
+
                         @Override
                         public void onResponse(Call call, Response response) throws
                                 IOException {

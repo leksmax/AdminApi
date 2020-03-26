@@ -2,6 +2,7 @@ package com.konka.kksdtr069.handler.impl;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.RemoteException;
 import android.text.TextUtils;
 
@@ -15,9 +16,12 @@ import com.konka.kksdtr069.util.PropertyUtil;
 import net.sunniwell.cwmp.protocol.sdk.aidl.AppID;
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPDownloadRequest;
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPDownloadResult;
+import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPParameter;
+import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPSetParameterAttributesStruct;
 import net.sunniwell.cwmp.protocol.sdk.aidl.ICWMPProtocolService;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.List;
 
 public class SystemHandlerImpl implements SystemHandler {
@@ -102,8 +106,17 @@ public class SystemHandlerImpl implements SystemHandler {
                 intent.putExtra("silent_upgrade", request.isSilent());
                 intent.putExtra("force_upgrade", request.isForce());
                 context.sendBroadcast(intent);
-                result.setState(CWMPDownloadResult.STATE_SUCCESS);
-                LogUtil.d(TAG, "update firmware finish");
+                // result.setState(CWMPDownloadResult.STATE_SUCCESS);
+
+                // 广播升级参数
+                Intent updateIntent = new Intent();
+                updateIntent.setAction("android.intent.action.TRANSFER_INFORM");
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("protocolService", (Serializable) protocolService);
+                bundle.putSerializable("cwmpDownloadResult", (Serializable) result);
+                updateIntent.putExtras(bundle);
+                context.sendBroadcast(updateIntent);
+                LogUtil.d(TAG, "send update firmware parameter broadcast");
                 break;
             case CWMPDownloadRequest.TYPE_APK:
                 // 应用升级或安装
@@ -157,14 +170,14 @@ public class SystemHandlerImpl implements SystemHandler {
                         result.setReason(string);
                     }
                 }).doWork(request.getUrl(), path);
+                try {
+                    protocolService.onDownloadFinish(result);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
                 break;
             default:
                 break;
-        }
-        try {
-            protocolService.onDownloadFinish(result);
-        } catch (RemoteException e) {
-            e.printStackTrace();
         }
     }
 

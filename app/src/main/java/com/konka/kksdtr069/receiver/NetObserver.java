@@ -10,6 +10,7 @@ import android.os.RemoteException;
 import com.konka.kksdtr069.base.BaseApplication;
 import com.konka.kksdtr069.base.BaseObserver;
 import com.konka.kksdtr069.handler.impl.NetworkHandlerImpl;
+import com.konka.kksdtr069.util.LogUtil;
 
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPParameter;
 import net.sunniwell.cwmp.protocol.sdk.aidl.ICWMPProtocolService;
@@ -36,6 +37,7 @@ public class NetObserver extends BaseObserver {
     public static NetObserver getInstance(ICWMPProtocolService protocolService) {
         if (instance == null) {
             instance = new NetObserver(protocolService);
+            LogUtil.d(TAG, "protocolService = " + protocolService);
         }
         return instance;
     }

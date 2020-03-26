@@ -15,6 +15,7 @@ import com.konka.kksdtr069.handler.DBHandler;
 import com.konka.kksdtr069.handler.impl.DBHandlerImpl;
 import com.konka.kksdtr069.handler.impl.NetworkHandlerImpl;
 import com.konka.kksdtr069.receiver.NetObserver;
+import com.konka.kksdtr069.receiver.UpdateObserver;
 import com.konka.kksdtr069.service.CWMPService;
 import com.konka.kksdtr069.util.LogUtil;
 import com.konka.kksdtr069.util.PropertyUtil;
@@ -37,6 +38,8 @@ public class Tr069Client extends Service {
 
     private NetObserver netObserver;
 
+    private UpdateObserver updateObserver;
+
     private ServiceConnection mConnection = new ServiceConnection() {
 
         @Override
@@ -55,7 +58,7 @@ public class Tr069Client extends Service {
             }
             mProtocolService = ICWMPProtocolService.Stub.asInterface(service);
             Log.d(TAG, "onServiceConnected() ICWMPProtocolService connect successfully," +
-                    "service = " + service);
+                    "service = " + service + ", mProtocolService = " + mProtocolService);
             try {
                 initNativeService();
                 // 每次启动更新网络类型和IP地址
@@ -85,6 +88,8 @@ public class Tr069Client extends Service {
         networkHandler = NetworkHandlerImpl.getInstance();
         bindCWMPService();
         netObserver = NetObserver.getInstance(mProtocolService);
+        updateObserver = UpdateObserver.getInstance();
+        updateObserver.registerReceiver();
         netObserver.registerNetReceiver();
     }
 
@@ -113,6 +118,7 @@ public class Tr069Client extends Service {
 
     private void release() {
         netObserver.unregisterNetReceiver();
+        updateObserver.unregisterReceiver();
         if (mProtocolService != null) {
             mProtocolService = null;
         }

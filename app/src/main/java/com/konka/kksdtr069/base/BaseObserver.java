@@ -23,7 +23,6 @@ public class BaseObserver implements LifecycleObserver {
 
     @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     protected void release() {
-
         mDisposable.clear();
     }
 
