@@ -61,7 +61,7 @@ public class Tr069Provider extends ContentProvider {
             if (dname.contains("Device.X_CMCC_OTV.ServiceInfo.UserID")) {
                 propValue = PropertyUtil.getProperty(prop).replace(":", "").toUpperCase();
             } else if (dname.contains("Device.DeviceInfo.SoftwareVersion")) {
-                propValue = PropertyUtil.formatSoftwareVersion(PropertyUtil.getProperty(prop));
+                propValue = PropertyUtil.formatSoftwareVersion();
             } else {
                 propValue = PropertyUtil.getProperty(prop);
             }

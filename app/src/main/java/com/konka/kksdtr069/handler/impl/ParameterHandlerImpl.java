@@ -100,8 +100,7 @@ public class ParameterHandlerImpl implements ParameterHandler {
 
     private void updateSoftwareVersionDisplay() throws RemoteException {
         // 升级完成之后，数据进行初始化对软件版本号进行规划化显示
-        String sfversion = PropertyUtil.getProperty("ro.build.version.incremental");
-        sfversion = PropertyUtil.formatSoftwareVersion(sfversion);
+        String sfversion = PropertyUtil.formatSoftwareVersion();
         dbHandler.update("Device.DeviceInfo.SoftwareVersion", sfversion);
     }
 }

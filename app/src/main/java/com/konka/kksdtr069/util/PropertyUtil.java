@@ -2,7 +2,11 @@ package com.konka.kksdtr069.util;
 
 import android.annotation.SuppressLint;
 
+import com.konka.kksdtr069.constant.MonthConstant;
+
 import java.lang.reflect.Method;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -62,28 +66,24 @@ public class PropertyUtil {
     /**
      * 修改软件版本号显示的格式
      *
-     * @param sfversion 软件版本号
-     * @return 格式正确的软件版本号，如0001.001.0017
+     * @return 格式正确的软件版本号，如0702.101.2003
      */
-    public static String formatSoftwareVersion(String sfversion) {
-        Pattern pattern = Pattern.compile("\\d{4}\\.\\d{3}\\.\\d{4}");
-        Matcher m = pattern.matcher(sfversion);
-        if (!m.matches()) {
-            String[] sfList = sfversion.split("\\.");
-            sfList[2] = sfList[2].split("_")[0];
-            while (sfList[0].length() < 4) {
-                sfList[0] = "0" + sfList[0];
+    public static String formatSoftwareVersion() {
+        String[] buildDate = getProperty("ro.build.date").split(" ");
+        String month = buildDate[1].toLowerCase();
+        String year = buildDate[5].substring(2, 4);
+        Set set = MonthConstant.months.entrySet();
+        Iterator iterator = set.iterator();
+        while (iterator.hasNext()) {
+            String i = iterator.next().toString().toLowerCase();
+            if (i.contains(month)) {
+                month = i.split("=")[1];
             }
-            while (sfList[2].length() < 4) {
-                sfList[2] = "0" + sfList[2];
-            }
-            while (sfList[1].length() < 3) {
-                sfList[1] = "0" + sfList[1];
-            }
-            return sfList[0] + "." + sfList[1] + "." + sfList[2];
-        } else {
-            return sfversion;
         }
+        StringBuilder result = new StringBuilder();
+        result.append("0702.101." + year + month);
+        return result.toString();
+
     }
 
 }
