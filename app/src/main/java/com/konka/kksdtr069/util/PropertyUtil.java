@@ -71,7 +71,8 @@ public class PropertyUtil {
     public static String formatSoftwareVersion() {
         String[] buildDate = getProperty("ro.build.date").split(" ");
         String month = buildDate[1].toLowerCase();
-        String year = buildDate[5].substring(2, 4);
+        String year = buildDate[buildDate.length - 1];
+        year = year.substring(2);
         Set set = MonthConstant.months.entrySet();
         Iterator iterator = set.iterator();
         while (iterator.hasNext()) {

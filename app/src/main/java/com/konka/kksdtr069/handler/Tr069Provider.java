@@ -27,7 +27,6 @@ public class Tr069Provider extends ContentProvider {
 
     private String[][] props = {
             {"ro.mac", "Device.LAN.MACAddress"},
-            {"persist.sys.konka.stbinfo.hw", "Device.DeviceInfo.HardwareVersion"},
             {"ro.build.version.incremental", "Device.DeviceInfo.SoftwareVersion"},
             {"ro.product.model", "Device.DeviceInfo.ModelName"},
             {"ro.serialno", "Device.X_CMCC_OTV.STBInfo.STBID"},
@@ -73,9 +72,9 @@ public class Tr069Provider extends ContentProvider {
         updateDb("Device.ManagementServer.ConnectionRequestUsername", "cpe");
         updateDb("Device.ManagementServer.ConnectionRequestPassword", "cpe");
 
-        updateDb("Device.ManagementServer.PeriodicInformEnable", true);
-        updateDb("Device.ManagementServer.PeriodicInformInterval", 2);
-        //updateDb("Device.ManagementServer.PeriodicInformTime",2);
+        // updateDb("Device.ManagementServer.PeriodicInformEnable", true);
+        // updateDb("Device.ManagementServer.PeriodicInformInterval", 2);
+        // updateDb("Device.ManagementServer.PeriodicInformTime",2);
 
         updateDb("Device.ManagementServer.STUNMaximumKeepAlivePeriod", 50);
         updateDb("Device.ManagementServer.STUNMinimumKeepAlivePeriod", 50);
@@ -89,7 +88,7 @@ public class Tr069Provider extends ContentProvider {
         ContentValues cv = new ContentValues();
         cv.put("value", dvalue);
         ret = update(Uri.parse(URI_AUTH), cv, "name=?", new String[]{dname});
-        LogUtil.i(TAG, "update:{" + dname + "} ret=" + ret);
+        LogUtil.i(TAG, "update:{" + dname + ", " + dvalue + "} ret=" + ret);
     }
 
     private void updateDb(String dname, boolean dvalue) {
@@ -194,7 +193,9 @@ public class Tr069Provider extends ContentProvider {
                 selectArgs = new String[]{(String) uri.getPathSegments().get(1)};
                 break;
         }
-        return db.update(table, cv, select, selectArgs);
+        int result = db.update(table, cv, select, selectArgs);
+        LogUtil.d(TAG, "update result : " + result);
+        return result;
     }
 
     public void onLowMemory() {
