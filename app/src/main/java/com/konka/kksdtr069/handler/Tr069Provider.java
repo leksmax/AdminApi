@@ -31,8 +31,9 @@ public class Tr069Provider extends ContentProvider {
             {"ro.product.model", "Device.DeviceInfo.ModelName"},
             {"ro.serialno", "Device.X_CMCC_OTV.STBInfo.STBID"},
             {"ro.product.model", "Device.DeviceInfo.ProductClass"},
-            {"ro.serialno", "Device.DeviceInfo.SerialNumber"},
-            {"ro.mac", "Device.X_CMCC_OTV.ServiceInfo.UserID"}};
+            {"ro.serialno", "Device.DeviceInfo.SerialNumber"}
+            // {"ro.mac", "Device.X_CMCC_OTV.ServiceInfo.UserID"}
+    };
 
     static {
         sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -58,7 +59,8 @@ public class Tr069Provider extends ContentProvider {
 
             String propValue = "";
             if (dname.contains("Device.X_CMCC_OTV.ServiceInfo.UserID")) {
-                propValue = PropertyUtil.getProperty(prop).replace(":", "").toUpperCase();
+                propValue = PropertyUtil.getProperty(prop).replace(":", "")
+                        .toUpperCase();
             } else if (dname.contains("Device.DeviceInfo.SoftwareVersion")) {
                 propValue = PropertyUtil.formatSoftwareVersion();
             } else {
@@ -72,12 +74,30 @@ public class Tr069Provider extends ContentProvider {
         updateDb("Device.ManagementServer.ConnectionRequestUsername", "cpe");
         updateDb("Device.ManagementServer.ConnectionRequestPassword", "cpe");
 
-        // updateDb("Device.ManagementServer.PeriodicInformEnable", true);
-        // updateDb("Device.ManagementServer.PeriodicInformInterval", 2);
-        // updateDb("Device.ManagementServer.PeriodicInformTime",2);
+        savedUpdateValue("Device.X_CMCC_OTV.ServiceInfo.UserID",
+                PropertyUtil.getProperty("ro.mac").replace(":", "").toUpperCase());
+        savedUpdateValue("Device.ManagementServer.PeriodicInformEnable", "true");
+        savedUpdateValue("Device.ManagementServer.PeriodicInformInterval", "7200");
+        savedUpdateValue("Device.ManagementServer.PeriodicInformTime",
+                "2018-10-24 10:24:24");
 
         updateDb("Device.ManagementServer.STUNMaximumKeepAlivePeriod", 50);
         updateDb("Device.ManagementServer.STUNMinimumKeepAlivePeriod", 50);
+    }
+
+    private void savedUpdateValue(String paramName, String defaultValue) {
+        String savedValue = "";
+        Cursor cursor = db.query("datamodel", new String[]{"value"}, "name=?",
+                new String[]{paramName}, null, null, null, null);
+        if (cursor != null && cursor.moveToNext()) {
+            savedValue = cursor.getString(cursor.getColumnIndex("value"));
+            LogUtil.d(TAG, "query updated value, " + paramName + " = " + savedValue);
+            cursor.close();
+        }
+        if (savedValue.equals("")) {
+            LogUtil.d(TAG, "updated value is empty, update default value");
+            updateDb(paramName, defaultValue);
+        }
     }
 
     private void updateDb(String dname, String dvalue) {
