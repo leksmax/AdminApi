@@ -12,6 +12,7 @@ public class ParameterConstant {
             "Device.DeviceInfo.FirstUseDate",
             "Device.DeviceInfo.UpTime",
             "Device.ManagementServer.ConnectionRequestURL",
+            "Device.ManagementServer.NATDetected",
             "Device.TIME.NTPServer1",
             "Device.LAN.DNSServers",
             "Device.LAN.AddressingType",

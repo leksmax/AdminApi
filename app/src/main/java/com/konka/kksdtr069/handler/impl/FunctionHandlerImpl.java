@@ -32,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 import com.konka.kksdtr069.util.SyslogUtil;
 
 public class FunctionHandlerImpl implements FunctionHandler {
@@ -479,15 +480,19 @@ public class FunctionHandlerImpl implements FunctionHandler {
         if (!isUploadSysLog(syslogOutputType)) {
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             try {
+                Date startTime = new Date();
+                if (!"".equals(syslogStartTime)) {
+                    startTime = format.parse(syslogStartTime);
+                }
                 syslog = new SyslogUtil(Integer.parseInt(syslogOutputType),
                         Integer.parseInt(syslogLevel),
                         Integer.parseInt(syslogType),
                         syslogServer,
-                        format.parse(syslogStartTime),
+                        startTime,
                         Integer.parseInt(syslogContinueTime),
                         syslogFTPServer);
                 syslog.start();
-            } catch ( ParseException e ) {
+            } catch (ParseException e) {
                 e.printStackTrace();
             }
         } else {
