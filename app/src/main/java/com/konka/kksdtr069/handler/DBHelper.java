@@ -9,7 +9,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String TAG = DBHelper.class.getSimpleName();
 
     private static final String DATABASE_NAME = "tr069.db";
-    private static final int DATABASE_VERSION = 1; // 数据库版本，数据库需要更新时版本号加1
+    private static final int DATABASE_VERSION = 3; // 数据库版本，数据库需要更新时版本号加1
 
     private static final String contents[][] = {
             {"Device.DeviceSummary", "This product belongs to Shenzhen Konka information network company", "string(1024)", "0", "0", "0"},
