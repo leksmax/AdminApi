@@ -11,6 +11,8 @@ public class DBHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "tr069.db";
     private static final int DATABASE_VERSION = 3; // 数据库版本，数据库需要更新时版本号加1
 
+    // http://rmsstbmsf4.sn.chinamobile.com:10086/ACS-Server/acs
+    // http://101.96.131.47:10086/ACS-server/acs
     private static final String contents[][] = {
             {"Device.DeviceSummary", "This product belongs to Shenzhen Konka information network company", "string(1024)", "0", "0", "0"},
             {"Device.DeviceType", "STB", "string(64)", "0", "0", "0"},

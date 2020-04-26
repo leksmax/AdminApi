@@ -15,7 +15,12 @@ import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPDownloadResult;
 import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPParameter;
 import net.sunniwell.cwmp.protocol.sdk.aidl.ICWMPProtocolService;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class ParameterHandlerImpl implements ParameterHandler {
 
@@ -26,6 +31,10 @@ public class ParameterHandlerImpl implements ParameterHandler {
     private static DBHandlerImpl dbHandler;
 
     public static final String TAG = ParameterHandlerImpl.class.getSimpleName();
+
+    private static final long INITIAL_DELAY = 30;
+
+    private static final long PERIOD = 45;
 
     private ParameterHandlerImpl() {
         dbHandler = DBHandlerImpl.getInstance();
@@ -52,7 +61,24 @@ public class ParameterHandlerImpl implements ParameterHandler {
     public List<CWMPParameter> getInformParameters() throws RemoteException {
         updateSoftwareVersionDisplay();
         isTransferCompleted();
-        return dbHandler.queryInformParameters();
+        final List<CWMPParameter> list = dbHandler.queryInformParameters();
+        return list;
+    }
+
+    private void regularReport(final ICWMPProtocolService protocolService, final List<CWMPParameter> list) {
+        // 终端定时主动上报参数，解决设备有时会离线的问题
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    protocolService.onValueChange(list);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
+        service.scheduleAtFixedRate(runnable, INITIAL_DELAY, PERIOD, TimeUnit.MINUTES);
     }
 
     @Override

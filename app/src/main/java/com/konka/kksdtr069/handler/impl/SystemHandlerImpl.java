@@ -22,6 +22,7 @@ import net.sunniwell.cwmp.protocol.sdk.aidl.ICWMPProtocolService;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 public class SystemHandlerImpl implements SystemHandler {
@@ -83,7 +84,7 @@ public class SystemHandlerImpl implements SystemHandler {
     }
 
     @Override
-    public void download(CWMPDownloadRequest request, ICWMPProtocolService protocolService) {
+    public void download(CWMPDownloadRequest request, final ICWMPProtocolService protocolService) {
         LogUtil.d(TAG, "download type : " + request.getType() + "\n" +
                 "平台下发的url : " + request.getUrl() + "\n" +
                 "commandKey : " + request.getCommandKey() + "\n" +
@@ -158,6 +159,9 @@ public class SystemHandlerImpl implements SystemHandler {
                                 }
                                 LogUtil.d(TAG, "down apk info : " + newValue);
                                 dbHandler.update("Device.X_00E0FC.SoftwareVersionList", newValue);
+                                List<CWMPParameter> softVersionInforms = new ArrayList<>();
+                                softVersionInforms.add(dbHandler.queryByName("Device.X_00E0FC.SoftwareVersionList"));
+                                protocolService.onValueChange(softVersionInforms);
                             }
                         } catch (IOException | InterruptedException | RemoteException e) {
                             e.printStackTrace();

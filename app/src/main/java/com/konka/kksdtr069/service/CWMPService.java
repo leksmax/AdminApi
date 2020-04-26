@@ -150,7 +150,7 @@ public class CWMPService extends ICWMPNativeService.Stub {
         LogUtil.d(TAG, "setParameters()");
         ArrayList<SetParameterValuesFault> faultList = new ArrayList<SetParameterValuesFault>();
         functionHandler.pingDiagnosis(list, mProtocolService);
-        functionHandler.traceRouteDiagnosis(list,mProtocolService);
+        functionHandler.traceRouteDiagnosis(list, mProtocolService);
         functionHandler.remoteNetPacketCapture(list);
         functionHandler.captureAndUploadLog(list);
         faultList.addAll(functionHandler.wifiEnable(list));
@@ -185,7 +185,7 @@ public class CWMPService extends ICWMPNativeService.Stub {
     @Override
     public void download(CWMPDownloadRequest cwmpDownloadRequest) {
         LogUtil.d(TAG, "download()");
-        systemHandler.download(cwmpDownloadRequest,mProtocolService);
+        systemHandler.download(cwmpDownloadRequest, mProtocolService);
     }
 
     /**
@@ -208,7 +208,7 @@ public class CWMPService extends ICWMPNativeService.Stub {
     @Override
     public void uninstall(List<AppID> list) {
         LogUtil.d(TAG, "uninstall()");
-        systemHandler.appUninstall(list,mProtocolService);
+        systemHandler.appUninstall(list, mProtocolService);
     }
 
     @Override
