@@ -11,7 +11,7 @@ public interface ParameterHandler {
 
     List<CWMPParameter> getParameterBySuperName(String path) throws RemoteException;
 
-    List<CWMPParameter> getInformParameters() throws RemoteException;
+    List<CWMPParameter> getInformParameters(ICWMPProtocolService protocolService) throws RemoteException;
 
     String getParameterValue(String name) throws RemoteException;
 

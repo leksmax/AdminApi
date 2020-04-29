@@ -43,7 +43,7 @@ public class CWMPService extends ICWMPNativeService.Stub {
      */
     @Override
     public List<CWMPParameter> getInformParameters() throws RemoteException {
-        List<CWMPParameter> list = parameterHandler.getInformParameters();
+        List<CWMPParameter> list = parameterHandler.getInformParameters(mProtocolService);
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i < list.size(); i++) {
             if (i == 0) {
@@ -62,7 +62,7 @@ public class CWMPService extends ICWMPNativeService.Stub {
      */
     @Override
     public List<CWMPParameter> getPeriodicParameters() throws RemoteException {
-        List<CWMPParameter> list = parameterHandler.getInformParameters();
+        List<CWMPParameter> list = parameterHandler.getInformParameters(mProtocolService);
         StringBuilder stringBuilder = new StringBuilder();
         for (int i = 0; i < list.size(); i++) {
             if (i == 0) {

@@ -7,6 +7,7 @@ import android.os.RemoteException;
 
 import com.konka.kksdtr069.base.BaseApplication;
 import com.konka.kksdtr069.handler.ParameterHandler;
+import com.konka.kksdtr069.util.DownloadUtil;
 import com.konka.kksdtr069.util.LogUtil;
 import com.konka.kksdtr069.util.PropertyUtil;
 
@@ -58,9 +59,10 @@ public class ParameterHandlerImpl implements ParameterHandler {
     }
 
     @Override
-    public List<CWMPParameter> getInformParameters() throws RemoteException {
+    public List<CWMPParameter> getInformParameters(ICWMPProtocolService protocolService) throws RemoteException {
         updateSoftwareVersionDisplay();
         isTransferCompleted();
+        DownloadUtil.reportApkInfo(dbHandler, protocolService);
         final List<CWMPParameter> list = dbHandler.queryInformParameters();
         return list;
     }

@@ -75,6 +75,7 @@ public class SystemHandlerImpl implements SystemHandler {
                             + " result : " + app.result + " resultCode : " + resultCode);
                 }
                 try {
+                    DownloadUtil.reportApkInfo(dbHandler, protocolService);
                     protocolService.onUninstallFinish(list);
                 } catch (RemoteException e) {
                     e.printStackTrace();
@@ -136,6 +137,7 @@ public class SystemHandlerImpl implements SystemHandler {
                             if (status == 0) {
                                 String oldValue = dbHandler.queryByNameForString(
                                         "Device.X_00E0FC.SoftwareVersionList");
+                                LogUtil.d(TAG, oldValue);
                                 String newValue = "";
                                 if (TextUtils.isEmpty(oldValue)) {
                                     String[] strings;
@@ -158,10 +160,7 @@ public class SystemHandlerImpl implements SystemHandler {
                                     }
                                 }
                                 LogUtil.d(TAG, "down apk info : " + newValue);
-                                dbHandler.update("Device.X_00E0FC.SoftwareVersionList", newValue);
-                                List<CWMPParameter> softVersionInforms = new ArrayList<>();
-                                softVersionInforms.add(dbHandler.queryByName("Device.X_00E0FC.SoftwareVersionList"));
-                                protocolService.onValueChange(softVersionInforms);
+                                DownloadUtil.reportApkInfo(dbHandler, protocolService);
                             }
                         } catch (IOException | InterruptedException | RemoteException e) {
                             e.printStackTrace();
@@ -184,6 +183,7 @@ public class SystemHandlerImpl implements SystemHandler {
                 break;
         }
     }
+
 
     @Override
     public void FactoryReset() {

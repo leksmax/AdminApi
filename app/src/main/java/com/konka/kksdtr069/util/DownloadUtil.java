@@ -5,7 +5,14 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Environment;
+import android.os.RemoteException;
 import android.util.Log;
+
+import com.konka.kksdtr069.base.BaseApplication;
+import com.konka.kksdtr069.handler.impl.DBHandlerImpl;
+
+import net.sunniwell.cwmp.protocol.sdk.aidl.CWMPParameter;
+import net.sunniwell.cwmp.protocol.sdk.aidl.ICWMPProtocolService;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -130,6 +137,34 @@ public class DownloadUtil {
         }
         String[] strings = {label, version, packageName};
         return strings;
+    }
+
+    public static ArrayList<String> getAllInstalledApkInfo(Context context) {
+        PackageManager pm = context.getPackageManager();
+        List<PackageInfo> installedPackages = pm.getInstalledPackages(PackageManager.GET_ACTIVITIES);
+        ArrayList<String> softList = new ArrayList<>();
+        for (PackageInfo info : installedPackages) {
+            String label = info.applicationInfo.loadLabel(pm).toString();
+            String version = info.versionName == null ? "1.0" : info.versionName;
+            String packageName = info.applicationInfo.packageName;
+            softList.add(label + "|" + version + "|" + packageName);
+        }
+        return softList;
+    }
+
+    public static void reportApkInfo(DBHandlerImpl dbHandler, ICWMPProtocolService protocolService) {
+        Context context = BaseApplication.instance.getApplicationContext();
+        ArrayList<String> softList = DownloadUtil.getAllInstalledApkInfo(context);
+        try {
+            dbHandler.update("Device.X_00E0FC.SoftwareVersionList",
+                    softList.toString().substring(1, softList.toString().length() - 1));
+            List<CWMPParameter> softVersionInforms = new ArrayList<>();
+            softVersionInforms.add(dbHandler.queryByName("Device.X_00E0FC.SoftwareVersionList"));
+            protocolService.onValueChange(softVersionInforms);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+        LogUtil.d(TAG, "Apks Info: " + softList);
     }
 
     public void cancelAll() {
