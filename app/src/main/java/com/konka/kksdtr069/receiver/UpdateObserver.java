@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.RemoteException;
+import android.text.TextUtils;
 
 import com.konka.kksdtr069.base.BaseApplication;
 import com.konka.kksdtr069.base.BaseObserver;
@@ -56,18 +57,22 @@ public class UpdateObserver extends BaseObserver {
         public void onReceive(Context context, Intent intent) {
             ICWMPProtocolService protocolService = null;
             CWMPDownloadResult result = null;
+            String oldSfVersion = "";
             if ("android.intent.action.TRANSFER_INFORM".equals(intent.getAction())) {
                 Bundle bundle = intent.getExtras();
                 result = (CWMPDownloadResult) bundle.get("cwmpDownloadResult");
                 protocolService = (ICWMPProtocolService) bundle.get("protocolService");
+                oldSfVersion = bundle.getString("oldSfVersion");
                 LogUtil.d(TAG, "update inform: " + "\n"
                         + "CWMPResult = " + result + "\n"
-                        + "ICWMPProtocolService = " + protocolService);
+                        + "ICWMPProtocolService = " + protocolService + "\n"
+                        + "oldSfVersion = " + oldSfVersion);
             }
             if ("android.intent.action.TRANSFER_COMPLETED".equals(intent.getAction())
                     && result != null && protocolService != null) {
-                String isTransferCompleted = intent.getStringExtra("isTransferCompleted");
-                if ("true".equals(isTransferCompleted)) {
+                String newSfVersion = intent.getStringExtra("newSfVersion");
+                LogUtil.d(TAG, "newSfVersion = " + newSfVersion);
+                if (!TextUtils.isEmpty(oldSfVersion) && !oldSfVersion.equals(newSfVersion)) {
                     result.setState(DownloadUtil.TRANSFER_SUCCESS);
                 } else {
                     result.setState(DownloadUtil.TRANSFER_FAILURE);

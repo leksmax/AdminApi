@@ -111,11 +111,13 @@ public class SystemHandlerImpl implements SystemHandler {
                 // result.setState(CWMPDownloadResult.STATE_SUCCESS);
 
                 // 广播升级参数
+                String sfversion = PropertyUtil.getProperty("ro.build.version.incremental");
                 Intent updateIntent = new Intent();
                 updateIntent.setAction("android.intent.action.TRANSFER_INFORM");
                 Bundle bundle = new Bundle();
                 bundle.putSerializable("protocolService", (Serializable) protocolService);
                 bundle.putSerializable("cwmpDownloadResult", (Serializable) result);
+                bundle.putString("oldSfVersion",sfversion);
                 updateIntent.putExtras(bundle);
                 context.sendBroadcast(updateIntent);
                 LogUtil.d(TAG, "send update firmware parameter broadcast");

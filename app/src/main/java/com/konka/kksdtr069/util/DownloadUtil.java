@@ -164,7 +164,6 @@ public class DownloadUtil {
         } catch (RemoteException e) {
             e.printStackTrace();
         }
-        LogUtil.d(TAG, "Apks Info: " + softList);
     }
 
     public void cancelAll() {

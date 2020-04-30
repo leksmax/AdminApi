@@ -117,11 +117,7 @@ public class ParameterHandlerImpl implements ParameterHandler {
         Context context = BaseApplication.instance.getApplicationContext();
         Intent intent = new Intent();
         intent.setAction("android.intent.action.TRANSFER_COMPLETED");
-        if ("1.1.20".equals(sfversion)) {
-            intent.putExtra("isTransferCompleted", "true");
-        } else {
-            intent.putExtra("isTransferCompleted", "false");
-        }
+        intent.putExtra("newSfVersion", sfversion);
         context.sendBroadcast(intent);
         LogUtil.d(TAG, "send if transfer completed broadcast");
     }
