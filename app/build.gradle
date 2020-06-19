@@ -35,12 +35,12 @@ dependencies {
     // rxjava
     implementation "io.reactivex.rxjava2:rxjava:$rootProject.rxJavaVersion"
     implementation "io.reactivex.rxjava2:rxandroid:$rootProject.rxAndroidVersion"
-
     implementation files('libs/kkbasiclib.jar')
-    implementation files('libs/SWTR069_SDK_2019122401.jar')
+    implementation files('libs/SWTR060_SDK_2020.05.19.01.jar')
     implementation files('libs/okhttp-3.4.2.jar')
     implementation files('libs/okio-1.11.0.jar')
     implementation files('libs/commons-codec-1.10.jar')
     implementation files('libs/gson-2.8.0.jar')
     implementation files('libs/sw-migu-cyp-tools.jar')
+    implementation files('libs/SWTR060_SDK_2020.05.19.01.jar')
 }
