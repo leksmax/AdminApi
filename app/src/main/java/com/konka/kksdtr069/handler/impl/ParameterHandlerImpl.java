@@ -62,25 +62,9 @@ public class ParameterHandlerImpl implements ParameterHandler {
     public List<CWMPParameter> getInformParameters(ICWMPProtocolService protocolService) throws RemoteException {
         updateSoftwareVersionDisplay();
         isTransferCompleted();
-        DownloadUtil.reportApkInfo(dbHandler, protocolService);
+        DownloadUtil.reportApkInfo(dbHandler, protocolService, true);
         final List<CWMPParameter> list = dbHandler.queryInformParameters();
         return list;
-    }
-
-    private void regularReport(final ICWMPProtocolService protocolService, final List<CWMPParameter> list) {
-        // 终端定时主动上报参数，解决设备有时会离线的问题
-        Runnable runnable = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    protocolService.onValueChange(list);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-        ScheduledExecutorService service = Executors.newSingleThreadScheduledExecutor();
-        service.scheduleAtFixedRate(runnable, INITIAL_DELAY, PERIOD, TimeUnit.MINUTES);
     }
 
     @Override

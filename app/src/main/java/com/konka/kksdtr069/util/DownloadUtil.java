@@ -152,15 +152,23 @@ public class DownloadUtil {
         return softList;
     }
 
-    public static void reportApkInfo(DBHandlerImpl dbHandler, ICWMPProtocolService protocolService) {
+    public static void reportApkInfo(DBHandlerImpl dbHandler, ICWMPProtocolService protocolService, Boolean isReboot) {
         Context context = BaseApplication.instance.getApplicationContext();
         ArrayList<String> softList = DownloadUtil.getAllInstalledApkInfo(context);
         try {
-            dbHandler.update("Device.X_00E0FC.SoftwareVersionList",
-                    softList.toString().substring(1, softList.toString().length() - 1));
-            List<CWMPParameter> softVersionInforms = new ArrayList<>();
-            softVersionInforms.add(dbHandler.queryByName("Device.X_00E0FC.SoftwareVersionList"));
-            protocolService.onValueChange(softVersionInforms);
+            String oldSoftwareVersionList = dbHandler.queryByName("Device.X_00E0FC.SoftwareVersionList").getValue();
+            String newSoftwareVersionList = softList.toString().substring(1, softList.toString().length() - 1);
+            Boolean isSameList = oldSoftwareVersionList.equals(newSoftwareVersionList);
+            if (!isSameList) {
+                Log.d(TAG, "software version list change!");
+                dbHandler.update("Device.X_00E0FC.SoftwareVersionList", newSoftwareVersionList);
+            }
+            if (!isReboot && !isSameList) {
+                List<CWMPParameter> softVersionInforms = new ArrayList<>();
+                softVersionInforms.add(dbHandler.queryByName("Device.X_00E0FC.SoftwareVersionList"));
+                protocolService.onValueChange(softVersionInforms);
+                LogUtil.d(TAG, "onValueChange() report software version list");
+            }
         } catch (RemoteException e) {
             e.printStackTrace();
         }

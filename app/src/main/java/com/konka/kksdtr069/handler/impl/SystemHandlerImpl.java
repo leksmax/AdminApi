@@ -75,7 +75,7 @@ public class SystemHandlerImpl implements SystemHandler {
                             + " result : " + app.result + " resultCode : " + resultCode);
                 }
                 try {
-                    DownloadUtil.reportApkInfo(dbHandler, protocolService);
+                    DownloadUtil.reportApkInfo(dbHandler, protocolService, false);
                     protocolService.onUninstallFinish(list);
                 } catch (RemoteException e) {
                     e.printStackTrace();
@@ -162,7 +162,7 @@ public class SystemHandlerImpl implements SystemHandler {
                                     }
                                 }
                                 LogUtil.d(TAG, "down apk info : " + newValue);
-                                DownloadUtil.reportApkInfo(dbHandler, protocolService);
+                                DownloadUtil.reportApkInfo(dbHandler, protocolService, false);
                             }
                         } catch (IOException | InterruptedException | RemoteException e) {
                             e.printStackTrace();
