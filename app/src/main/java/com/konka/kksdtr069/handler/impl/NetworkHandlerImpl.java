@@ -80,7 +80,7 @@ public class NetworkHandlerImpl implements NetworkHandler {
             netMode = ETHERNET_CONN_MODE_DHCP;
         }
 
-        LogUtil.i(TAG, String.format("updateNet: ipAddress = %s,netMode = %s", ipAddress, netMode));
+        LogUtil.d(TAG, String.format("updateNet: ipAddress = %s,netMode = %s", ipAddress, netMode));
 
         boolean isNetModeChanged = dbHandler.isDifferentFromDB(netMode,
                 "Device.LAN.AddressingType");
@@ -88,13 +88,11 @@ public class NetworkHandlerImpl implements NetworkHandler {
                 "Device.LAN.IPAddress");
 
         if (isNetModeChanged) {
-            // 网络类型发生变化
             dbHandler.update("Device.LAN.AddressingType", netMode);
             if ("PPPoE".equals(netMode)) {
-                // 若当前是PPPoE网络，将PPPoE账号参数加入上报缓存
                 CWMPParameter pppoeParameter = dbHandler.queryByName("Device.X_CMCC_OTV." +
                         "ServiceInfo.PPPoEID");
-                LogUtil.i(TAG, "updateNet: PPPoE id is" + pppoeParameter.getValue());
+                LogUtil.d(TAG, "updateNet: PPPoE id is" + pppoeParameter.getValue());
                 parameterCacheList.add(pppoeParameter);
             }
             // 将网络类型参数加入上报缓存
@@ -170,16 +168,16 @@ public class NetworkHandlerImpl implements NetworkHandler {
             while (enumerationNi.hasMoreElements()) {
                 NetworkInterface networkInterface = enumerationNi.nextElement();
                 String interfaceName = networkInterface.getDisplayName();
-                LogUtil.i(TAG, "网络名字" + interfaceName);
+                LogUtil.d(TAG, "网络名字" + interfaceName);
 
                 if ("ppp0".equals(interfaceName)) {
                     // PPPoE协议
-                    // 更新数据库中的PPPoE账号，将参数加入上报缓存
                     String pppoeAcount = PropertyUtil.getProperty("persist.sys.pppoeaccount",
                             "Unknow");
                     dbHandler.update("Device.X_CMCC_OTV.ServiceInfo.PPPoEID",
                             pppoeAcount);
                     ethHostAddress = getIP(networkInterface);
+
                     /*测试发现DHCP切换成PPPoE会有两个ip，多一个eth0的，但是会先扫描到ppp0，
                     获取到IP地址后直接跳出while循环*/
                     break;

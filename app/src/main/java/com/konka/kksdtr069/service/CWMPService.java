@@ -147,15 +147,17 @@ public class CWMPService extends ICWMPNativeService.Stub {
      */
     @Override
     public List<SetParameterValuesFault> setParameters(List<CWMPParameter> list) throws RemoteException {
-        LogUtil.d(TAG, "setParameters()");
         ArrayList<SetParameterValuesFault> faultList = new ArrayList<SetParameterValuesFault>();
         functionHandler.pingDiagnosis(list, mProtocolService);
         functionHandler.traceRouteDiagnosis(list, mProtocolService);
         functionHandler.remoteNetPacketCapture(list);
         functionHandler.captureAndUploadLog(list);
         faultList.addAll(functionHandler.wifiEnable(list));
+        LogUtil.d(TAG, "setParameters() Device.ManagementServer.PeriodicInformInterval = "
+                + parameterHandler.getParameterValue("Device.ManagementServer.PeriodicInformInterval"));
         return faultList;
     }
+
 
     /**
      * 远程重启
